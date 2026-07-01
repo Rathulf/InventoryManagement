@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import '../../assets/styles.css'; 
 
-export default function Login({ onToggleView, onLoginSuccess }) {
+export default function Login({ onToggleView, onLoginSuccess, successMessage, clearMessage }) {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [localSuccess, setLocalSuccess] = useState('');
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -13,7 +13,8 @@ export default function Login({ onToggleView, onLoginSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
+    setLocalSuccess('');
+    if (clearMessage) clearMessage(); // Clear the registration banner on new attempt
 
     try {
       const response = await fetch("http://localhost:8080/api/auth/login", {
@@ -28,7 +29,7 @@ export default function Login({ onToggleView, onLoginSuccess }) {
       }
 
       const data = await response.json();
-      setSuccess(`Success! Welcome back, ${data.name}`);
+      setLocalSuccess(`Success! Welcome back, ${data.name}`);
       localStorage.setItem("user_role", data.role);
       localStorage.setItem("user_name", data.name);
       
@@ -39,11 +40,20 @@ export default function Login({ onToggleView, onLoginSuccess }) {
   };
 
   return (
-    <div className="split-card">
+    <div className="split-card" style={{ position: 'relative' }}>
+      
+      {/* 🟢 NEW REGISTRATION FLOATING TOAST BANNER */}
+      {successMessage && (
+        <div className="registration-toast">
+          <span>{successMessage}</span>
+          <button className="toast-close-btn" onClick={clearMessage}>&times;</button>
+        </div>
+      )}
+
       <div className="banner-side">
-        <div className="logo-placeholder">IMS LOGO</div>
+        <div className="logo-placeholder">STOCKPULSE</div>
         <div className="banner-content">
-          <h1 className='title-content'>StockPulse</h1>
+          <h1 className="banner-title">TRACK & OPTIMIZE</h1>
           <p className="banner-subtitle">Real-time stock tracking, role-based controls, and seamless asset updates.</p>
         </div>
         <div className="banner-footer">SYSTEM VERSION 1.0</div>
@@ -52,11 +62,11 @@ export default function Login({ onToggleView, onLoginSuccess }) {
       <div className="form-side">
         <div className="form-header">
           <h2 className="form-title">Login</h2>
-          <p className="form-subtitle">Please enter your account to Login</p>
+          <p className="form-subtitle">Welcome back! Please enter your credentials to manage stock entries.</p>
         </div>
 
         {error && <p className="error-box">{error}</p>}
-        {success && <p className="success-box">{success}</p>}
+        {localSuccess && <p className="success-box">{localSuccess}</p>}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-group">
