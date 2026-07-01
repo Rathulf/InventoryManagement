@@ -23,10 +23,9 @@ export default function Register({ onRegisterSuccess, onToggleView }) {
       if (!response.ok) {
         const errorMsg = await response.text();
         throw new Error(errorMsg || "Failed to register");
+      } else {
+        if (onRegisterSuccess) onRegisterSuccess();
       }
-
-      alert('Registration successful! Redirecting to login view.');
-      onRegisterSuccess();
     } catch (err) {
       setError(err.message);
     }

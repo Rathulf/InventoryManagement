@@ -1,4 +1,4 @@
-package edu.cit.sampan.InventoryManangement.entity;
+package edu.cit.sampan.InventoryManagement.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

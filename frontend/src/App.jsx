@@ -1,22 +1,37 @@
-import React, { useState } from 'react';
-import Login from "./module/Login/Login";
-import Register from "./module/Register/Register";
+import React, { useState } from "react";
+import Login from "./module/Login/Login.jsx";
+import Register from "./module/Register/Register.jsx";
 import "./assets/styles.css";
 
 function App() {
-  const [isLoginView, setIsLoginView] = useState(true);
+  const [view, setView] = useState("login"); // 'login' or 'register'
+  const [registrationSuccessMessage, setRegistrationSuccessMessage] = useState("");
+
+  const handleRegisterSuccess = () => {
+    // 1. Set the success message banner text
+    setRegistrationSuccessMessage("Registration successful! Please log in below.");
+    // 2. Automatically slide them back over to the login view
+    setView("login");
+  };
+
+  const handleToggleToRegister = () => {
+    // Clear message when explicitly clicking out
+    setRegistrationSuccessMessage("");
+    setView("register");
+  };
 
   return (
     <div className="auth-container">
-      {isLoginView ? (
+      {view === "login" ? (
         <Login 
-          onToggleView={() => setIsLoginView(false)} 
-          onLoginSuccess={(user) => console.log("Logged in user context:", user)}
+          onToggleView={handleToggleToRegister} 
+          successMessage={registrationSuccessMessage}
+          clearMessage={() => setRegistrationSuccessMessage("")}
         />
       ) : (
         <Register 
-          onToggleView={() => setIsLoginView(true)} 
-          onRegisterSuccess={() => setIsLoginView(true)}
+          onToggleView={() => setView("login")} 
+          onRegisterSuccess={handleRegisterSuccess} 
         />
       )}
     </div>
