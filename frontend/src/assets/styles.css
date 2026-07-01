@@ -1,0 +1,228 @@
+/* Reset default margins and force full viewport boundaries */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Master full-bleed container */
+.auth-container {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Two-column master split layout filling the entire browser window */
+.split-card {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Left branding banner side - spans 100% height on the left */
+.banner-side {
+    flex: 1;
+    background: linear-gradient(135deg, #00d2ff 0%, #007bff 100%);
+    color: #fff;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.logo-placeholder {
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    opacity: 0.95;
+}
+
+.banner-content {
+    margin: auto 0;
+}
+
+.banner-title {
+    font-size: 38px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
+
+.banner-subtitle {
+    font-size: 16px;
+    line-height: 1.6;
+    opacity: 0.9;
+    max-width: 340px;
+}
+
+.banner-footer {
+    font-size: 12px;
+    letter-spacing: 1px;
+    opacity: 0.7;
+}
+
+/* Right interactive form side panel */
+.form-side {
+    flex: 1.2;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #fff;
+}
+
+/* Structural constraints keeping fields from stretching too wide on massive screens */
+.form-header, 
+.auth-form, 
+.form-footer {
+    max-width: 400px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.form-header {
+    margin-bottom: 30px;
+}
+
+.form-title {
+    font-size: 32px;
+    color: #1a1a1a;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.form-subtitle {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-group label {
+    font-size: 13px;
+    color: #444;
+    font-weight: 500;
+}
+
+.input-group input, 
+.input-group select {
+    padding: 12px 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    outline: none;
+    background-color: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Checkbox and link text alignments */
+.row-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin-top: 2px;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    color: #555;
+    cursor: pointer;
+    user-select: none;
+}
+
+.forgot-password {
+    color: #007bff;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+/* Call-to-action full buttons */
+.submit-button {
+    padding: 14px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-top: 12px;
+    transition: background-color 0.2s;
+}
+
+.submit-button:hover {
+    background-color: #0056b3;
+}
+
+.form-footer {
+    margin-top: 30px;
+    font-size: 14px;
+}
+
+.toggle-link {
+    color: #007bff;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 4px;
+}
+
+.toggle-link:hover {
+    text-decoration: underline;
+}
+
+/* Context flash alerts */
+.error-box {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.success-box {
+    color: #28a745;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 15px;
+}
