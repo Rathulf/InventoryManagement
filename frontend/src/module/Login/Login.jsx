@@ -1,97 +1,95 @@
 import React, { useState } from 'react';
-import '../../assets/styles.css'; 
+import { useNavigate } from 'react-router-dom';
 
-export default function Login({ onToggleView, onLoginSuccess, successMessage, clearMessage }) {
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [localSuccess, setLocalSuccess] = useState('');
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setCredentials({ ...credentials, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setLocalSuccess('');
-    if (clearMessage) clearMessage(); // Clear the registration banner on new attempt
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
-        const errorMsg = await response.text();
-        throw new Error(errorMsg || "Invalid email or password");
-      }
+      if (response.ok) {
+        const data = await response.json();
+        
+        localStorage.setItem('userName', data.name);
+        localStorage.setItem('userEmail', data.email);
+        localStorage.setItem('userRole', data.role);
 
-      const data = await response.json();
-      setLocalSuccess(`Success! Welcome back, ${data.name}`);
-      localStorage.setItem("user_role", data.role);
-      localStorage.setItem("user_name", data.name);
-      
-      if (onLoginSuccess) onLoginSuccess(data);
+        navigate('/dashboard');
+      } else {
+        setError('Invalid email or password.');
+      }
     } catch (err) {
-      setError(err.message);
+      setError('Cannot connect to the server.');
     }
   };
 
   return (
-    <div className="split-card" style={{ position: 'relative' }}>
-      
-      {/* 🟢 NEW REGISTRATION FLOATING TOAST BANNER */}
-      {successMessage && (
-        <div className="registration-toast">
-          <span>{successMessage}</span>
-          <button className="toast-close-btn" onClick={clearMessage}>&times;</button>
-        </div>
-      )}
-
-      <div className="banner-side">
-        <div className="logo-placeholder">STOCKPULSE</div>
-        <div className="banner-content">
-          <h1 className="banner-title">TRACK & OPTIMIZE</h1>
-          <p className="banner-subtitle">Real-time stock tracking, role-based controls, and seamless asset updates.</p>
-        </div>
-        <div className="banner-footer">SYSTEM VERSION 1.0</div>
-      </div>
-
-      <div className="form-side">
-        <div className="form-header">
-          <h2 className="form-title">Login</h2>
-          <p className="form-subtitle">Welcome back! Please enter your credentials to manage stock entries.</p>
+    <div className="auth-container">
+      <div className="split-card">
+        <div className="banner-side">
+          <div className="logo-placeholder">STOCKPULSE</div>
+          <div className="banner-content">
+            <h2 className="banner-title">Smart Stock Control</h2>
+            <p className="banner-subtitle">
+              Manage your inventory tracking workflows securely inside a unified data panel.
+            </p>
+          </div>
+          <div className="banner-footer">© 2026 StockPulse Engine</div>
         </div>
 
-        {error && <p className="error-box">{error}</p>}
-        {localSuccess && <p className="success-box">{localSuccess}</p>}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="input-group">
-            <label>Email Address</label>
-            <input type="email" name="email" placeholder="name@company.com" onChange={handleChange} required />
-          </div>
-          
-          <div className="input-group">
-            <label>Password</label>
-            <input type="password" name="password" placeholder="••••••••" onChange={handleChange} required />
+        <div className="form-side">
+          <div className="form-header">
+            <h1 className="form-title">Welcome back</h1>
+            <p className="form-subtitle">Please enter your workspace account credentials.</p>
           </div>
 
-          <div className="row-actions">
-            <label className="remember-me">
-              <input type="checkbox" style={{ marginRight: '8px' }} /> Remember me
-            </label>
-            <span className="forgot-password">Forgot password?</span>
+          {error && <div className="error-box">{error}</div>}
+
+          <form className="auth-form" onSubmit={handleLogin}>
+            <div className="input-group">
+              <label htmlFor="email">Email Address</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <button type="submit" className="submit-button">
+              Sign In
+            </button>
+          </form>
+
+          <div className="form-footer">
+            Don't have an account?
+            <span className="toggle-link" onClick={() => navigate('/register')}>
+              Create Account
+            </span>
           </div>
-
-          <button type="submit" className="submit-button">LOGIN</button>
-        </form>
-
-        <div className="form-footer">
-          <span style={{ color: '#666' }}>New User? </span>
-          <span onClick={onToggleView} className="toggle-link">Signup</span>
         </div>
       </div>
     </div>
