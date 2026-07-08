@@ -1,6 +1,5 @@
 package com.example.inventorymanagement
 
-import retrofit2.Call
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
@@ -10,6 +9,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -33,19 +35,24 @@ class RegisterActivity : AppCompatActivity() {
             val name = etName.text.toString().trim()
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
-            val role = spinnerRole.selectedItem.toString()
+
+            // 🟢 Normalizes the dropdown selection string case format to match backend expectations
+            val role = spinnerRole.selectedItem.toString().uppercase().replace(" ", "_").trim()
 
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // 1. Bundle input strings into the request object
+            if (password.length < 6) {
+                Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val request = RegisterRequest(name, email, password, role)
 
-            // 2. Post data asynchronously to the Spring Boot backend server
-            RetrofitClient.instance.registerUser(request).enqueue(object : retrofit2.Callback<Void> {
-                override fun onResponse(call: Call<Void>, response: retrofit2.Response<Void>) {
+            RetrofitClient.instance.registerUser(request).enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     if (response.isSuccessful || response.code() == 201) {
                         val intent = Intent(this@RegisterActivity, LoginActivity::class.java).apply {
                             putExtra("REG_SUCCESS_MSG", "Registration successful! Please log in.")
@@ -53,7 +60,8 @@ class RegisterActivity : AppCompatActivity() {
                         startActivity(intent)
                         finish()
                     } else {
-                        Toast.makeText(this@RegisterActivity, "Registration failed: Email might be taken", Toast.LENGTH_LONG).show()
+                        val errorResponse = response.errorBody()?.string() ?: "Email might be taken"
+                        Toast.makeText(this@RegisterActivity, "Registration failed: $errorResponse", Toast.LENGTH_LONG).show()
                     }
                 }
 
@@ -62,6 +70,7 @@ class RegisterActivity : AppCompatActivity() {
                 }
             })
         }
+
         tvToLogin.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
