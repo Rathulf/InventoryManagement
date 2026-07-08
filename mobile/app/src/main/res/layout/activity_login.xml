@@ -20,7 +20,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Login to manage stock entries."
+        android:text="Login Account to manage your stock remotely."
         android:textColor="#666666"
         android:textSize="14sp"
         android:layout_gravity="center"

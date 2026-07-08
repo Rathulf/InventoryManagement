@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginActivity : AppCompatActivity() {
 
@@ -37,8 +39,8 @@ class LoginActivity : AppCompatActivity() {
 
             val request = LoginRequest(email, password)
 
-            RetrofitClient.instance.loginUser(request).enqueue(object : retrofit2.Callback<AuthResponse> {
-                override fun onResponse(call: Call<AuthResponse>, response: retrofit2.Response<AuthResponse>) {
+            RetrofitClient.instance.loginUser(request).enqueue(object : Callback<AuthResponse> {
+                override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
                     if (response.isSuccessful && response.body() != null) {
                         val session = response.body()!!
 
@@ -53,9 +55,10 @@ class LoginActivity : AppCompatActivity() {
 
                         Toast.makeText(this@LoginActivity, "Welcome back, ${session.name}!", Toast.LENGTH_SHORT).show()
 
-                        // 🟢 Optional: Route to MainActivity Dashboard here once ready!
-                        // startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                        // finish()
+                        // 🟢 Active Redirect: Takes you directly to your Dashboard Activity workspace
+                        val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
+                        startActivity(intent)
+                        finish()
                     } else {
                         Toast.makeText(this@LoginActivity, "Invalid email or password.", Toast.LENGTH_SHORT).show()
                     }
@@ -63,9 +66,11 @@ class LoginActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
                     Toast.makeText(this@LoginActivity, "Server network error: ${t.message}", Toast.LENGTH_SHORT).show()
+
                 }
             })
         }
+
         tvToRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
             finish()
