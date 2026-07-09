@@ -11,6 +11,7 @@ public class InventoryItem {
     private Long id;
 
     private String name;
+    @Column(name = "sku", nullable = false, unique = true)
     private String sku;
     private Integer qty;
 
