@@ -1,134 +1,165 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "../../assets/styles.css";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
-    fetchInventory();
-  }, []);
+    const cachedProfileString = localStorage.getItem("activeUser");
+    if (!cachedProfileString) {
+      navigate("/login");
+      return;
+    }
+    
+    const parsedUserObj = JSON.parse(cachedProfileString);
+    setUser(parsedUserObj);
 
-  const fetchInventory = async () => {
+    // Read flash storage to trace if safe login alert banner transitions are required
+    const accessTriggerFlag = sessionStorage.getItem("loginSuccessNotification");
+    if (accessTriggerFlag) {
+      setSuccessMsg(`Welcome back, ${parsedUserObj.name}! Secure system session authorized.`);
+      sessionStorage.removeItem("loginSuccessNotification");
+      
+      // Auto-expire success message visibility after 5 second timeline durations
+      const timer = setTimeout(() => {
+        setSuccessMsg("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+
+    fetchStockItems();
+  }, [navigate]);
+
+  const fetchStockItems = async () => {
     try {
-      setLoading(true);
-      const response = await fetch('http://localhost:8080/api/inventory');
-      if (!response.ok) {
-        throw new Error('Failed to fetch master stock registry data');
+      const response = await fetch("http://localhost:8080/api/inventory");
+      if (response.ok) {
+        const dataArray = await response.json();
+        setItems(dataArray);
+      } else {
+        setError("Failed to fetch master stock registry data elements.");
       }
-      const data = await response.json();
-      setItems(data);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      setError("API Connection Offline. Fallback state deployed.");
+      console.error(err);
     }
   };
 
-  const totalUniqueSkus = items.length;
-  const totalStockVolume = items.reduce((sum, item) => sum + (item.qty || 0), 0);
-  const lowStockThreshold = 5;
-  const criticalAlerts = items.filter(item => (item.qty || 0) <= lowStockThreshold).length;
+  const processSignOut = () => {
+    localStorage.removeItem("activeUser");
+    navigate("/login");
+  };
 
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <p className="loading-text">Loading master stock telemetry...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="error-screen">
-        <div className="error-card">
-          <p className="error-title">API Connection Offline</p>
-          <p className="error-subtitle">{error}</p>
-          <button onClick={fetchInventory} className="btn-retry">
-            Retry Connection
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (!user) return null;
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <div>
-          <h1 className="header-title">StockPulse Hub Workspace</h1>
-          <p className="header-subtitle">Real-time store stock control connected via Supabase REST API.</p>
+    <div className="dashboard-wrapper">
+      <header className="dashboard-header">
+        <div className="header-brand">
+          <h2>StockPulse Hub Workspace</h2>
+          <span className="role-tag">{user.role} INTERFACE</span>
         </div>
-        <div className="header-actions">
-          <button onClick={fetchInventory} className="btn-secondary">
-            Refresh
-          </button>
-          <button className="btn-primary">
-            + Add New Item
+        <div className="user-profile-zone">
+          <p>Operator: <strong>{user.name}</strong> ({user.email})</p>
+          <button onClick={processSignOut} className="logout-btn">
+            Sign Out
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="metrics-grid">
-        <div className="metric-card">
-          <p className="metric-label">Total Unique SKUs</p>
-          <p className="metric-value">{totalUniqueSkus}</p>
-        </div>
-        
-        <div className="metric-card">
-          <p className="metric-label">Total Stock Volume</p>
-          <p className="metric-value">{totalStockVolume} <span className="metric-unit">units</span></p>
-        </div>
+      {successMsg && <div className="alert-box success-alert">{successMsg}</div>}
+      {error && <div className="alert-box error-alert">{error}</div>}
 
-        <div className={`metric-card ${criticalAlerts > 0 ? 'alert-active' : ''}`}>
-          <p className="metric-label">Critical Alerts</p>
-          <p className="metric-value">
-            {criticalAlerts} <span className="metric-unit">Items Low</span>
+      <section className="metrics-grid">
+        <div className="metric-card">
+          <h3>Total Unique SKUs</h3>
+          <p className="metric-num">{items.length}</p>
+        </div>
+        <div className="metric-card">
+          <h3>Total Stock Volume</h3>
+          <p className="metric-num">
+            {items.reduce((acc, current) => acc + (current.quantity || 0), 0)}{" "}
+            <span className="unit-label">units</span>
           </p>
         </div>
-      </div>
-
-      <div className="registry-container">
-        <div className="registry-title-bar">
-          <h3 className="registry-title">Master Stock Registry</h3>
+        <div className="metric-card">
+          <h3>Critical Alerts</h3>
+          <p className="metric-num critical">
+            {items.filter((item) => (item.quantity || 0) < 5).length}{" "}
+            <span className="sub-label">Items Low</span>
+          </p>
         </div>
+      </section>
 
-        {items.length === 0 ? (
-          <div className="registry-empty">
-            No items found in your inventory database. Click "+ Add New Item" to populate rows.
+      <main className="workspace-layout">
+        <div className="table-container">
+          <div className="table-header-row">
+            <h3>Master Stock Registry</h3>
+            
+            {/* 🟢 ROLE-BASED UI BOUNDARY: Restricted explicitly to ADMIN authorizations */}
+            {user.role === "ADMIN" && (
+              <button 
+                className="action-btn-primary" 
+                onClick={() => alert("Administrative Action Context Window: Add product schema triggered.")}
+              >
+                + Add New Item (Admin Only)
+              </button>
+            )}
           </div>
-        ) : (
-          <div className="table-wrapper">
-            <table className="registry-table">
-              <thead className="table-head">
+
+          <table className="inventory-table">
+            <thead>
+              <tr>
+                <th>SKU ID</th>
+                <th>Item Name</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                {user.role === "ADMIN" && <th>Actions</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
                 <tr>
-                  <th>Product Name</th>
-                  <th>SKU Identifier</th>
-                  <th>Stock Volume</th>
-                  <th>Status Tracking</th>
+                  <td colSpan={user.role === "ADMIN" ? 6 : 5} className="empty-table-cell">
+                    No items found in your inventory database. 
+                    {user.role === "ADMIN" 
+                      ? " Click '+ Add New Item' to populate rows." 
+                      : " Awaiting admin stock allocation."}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => {
-                  const isLow = (item.qty || 0) <= lowStockThreshold;
-                  return (
-                    <tr key={item.id} className="table-row">
-                      <td className="cell-name">{item.name}</td>
-                      <td className="cell-sku">{item.sku}</td>
-                      <td className="cell-qty">{item.qty} units</td>
-                      <td className="cell-status">
-                        <span className={`badge ${isLow ? 'badge-alert' : 'badge-success'}`}>
-                          {isLow ? 'Low Stock Alert' : 'Healthy / In Stock'}
-                        </span>
+              ) : (
+                items.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.sku}</td>
+                    <td>{item.name}</td>
+                    <td>{item.category}</td>
+                    <td>{item.quantity}</td>
+                    <td>
+                      <span className={`status-badge ${item.quantity < 5 ? "low" : "ok"}`}>
+                        {item.quantity < 5 ? "Low Stock" : "Healthy"}
+                      </span>
+                    </td>
+                    
+                    {/* 🟢 ROLE-BASED ACTIONS COLUMN: Restricted to ADMIN profiles */}
+                    {user.role === "ADMIN" && (
+                      <td>
+                        <button className="edit-mini-btn" onClick={() => alert(`Edit SKU: ${item.sku}`)}>Edit</button>
+                        <button className="delete-mini-btn" onClick={() => alert(`Delete SKU: ${item.sku}`)}>Delete</button>
                       </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
   );
 }

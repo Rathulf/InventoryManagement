@@ -1,482 +1,433 @@
-/* ==========================================
-   1. GLOBAL RESET & BASE ROOT LAYOUT
-   ========================================== */
-html, body, #root {
+/* =========================================================================
+   CORE LAYOUT & RESET CONFIGURATIONS
+   ========================================================================= */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body, html, #root {
   width: 100%;
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  height: 100%;
   background-color: #f8fafc;
   color: #1e293b;
-  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
-*, *:before, *:after {
-  box-sizing: inherit;
-}
-
-/* ==========================================
-   2. AUTHENTICATION SCREENS (LOGIN & REGISTER)
-   ========================================== */
+/* =========================================================================
+   AUTHENTICATION SPLIT-SCREEN LAYOUT
+   ========================================================================= */
 .auth-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  width: 100%;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  padding: 1.5rem;
+  width: 100vw;
+  height: 100vh;
 }
 
-.split-card {
-  display: flex;
-  width: 100%;
-  max-width: 1050px;
-  min-height: 600px;
-  background: #ffffff;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-}
-
-/* Banner Side styling */
 .banner-side {
-  flex: 1;
+  flex: 1.2;
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  padding: 3rem;
+  color: #ffffff;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  color: #ffffff;
-}
-
-@media (max-width: 768px) {
-  .banner-side {
-    display: none; /* Collapses beautifully on standard mobile layouts */
-  }
+  padding: 40px;
 }
 
 .logo-placeholder {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: 0.05em;
 }
 
 .banner-content {
-  margin-top: auto;
-  margin-bottom: auto;
+  max-width: 520px;
 }
 
 .banner-title {
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  line-height: 1.2;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  margin-bottom: 20px;
+  line-height: 1.1;
 }
 
 .banner-subtitle {
-  font-size: 1rem;
-  color: #bfdbfe;
+  font-size: 1.1rem;
   line-height: 1.6;
+  opacity: 0.9;
 }
 
 .banner-footer {
-  font-size: 0.875rem;
-  color: #93c5fd;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  letter-spacing: 0.05em;
 }
 
-/* Form Entry Side styling */
 .form-side {
-  flex: 1;
-  padding: 3.5rem 3rem;
+  flex: 0.8;
+  background-color: #ffffff;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: #ffffff;
+  padding: 60px;
+  box-shadow: -10px 0 25px rgba(0, 0, 0, 0.02);
 }
 
 .form-header {
-  margin-bottom: 2rem;
+  margin-bottom: 30px;
 }
 
 .form-title {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 2.25rem;
+  font-weight: 800;
   color: #0f172a;
-  margin: 0 0 0.5rem 0;
+  margin-bottom: 8px;
 }
 
 .form-subtitle {
-  font-size: 0.925rem;
+  font-size: 0.95rem;
   color: #64748b;
-  margin: 0;
 }
 
+/* =========================================================================
+   FORM CONTROL COMPONENT INTERACTIONS
+   ========================================================================= */
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 20px;
+  width: 100%;
+  max-width: 420px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 6px;
 }
 
 .input-group label {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #334155;
 }
 
-.input-group input {
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
+.input-group input, .input-group select {
+  width: 100%;
+  padding: 12px 14px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
+  font-size: 0.95rem;
   background-color: #f8fafc;
-  outline: none;
+  color: #0f172a;
   transition: all 0.2s ease;
 }
 
-.input-group input:focus {
+.input-group input:focus, .input-group select:focus {
+  outline: none;
   border-color: #2563eb;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 211, 0.15);
+  box-shadow: 0 0 0 4px rgba(37, 99, 213, 0.1);
 }
 
 .submit-button {
-  margin-top: 0.5rem;
-  padding: 0.75rem 1rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 14px;
   background-color: #2563eb;
   color: #ffffff;
-  font-size: 1rem;
-  font-weight: 600;
   border: none;
   border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s ease;
+  margin-top: 10px;
 }
 
 .submit-button:hover {
   background-color: #1d4ed8;
 }
 
-.error-box {
-  background-color: #fef2f2;
-  border: 1px solid #fee2e2;
-  color: #b91c1c;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  margin-bottom: 1.25rem;
-}
-
 .form-footer {
-  margin-top: 2rem;
-  text-align: center;
-  font-size: 0.875rem;
+  margin-top: 30px;
+  font-size: 0.9rem;
   color: #64748b;
 }
 
 .toggle-link {
   color: #2563eb;
   font-weight: 600;
+  margin-left: 5px;
   cursor: pointer;
-  margin-left: 0.25rem;
+  text-decoration: none;
 }
 
 .toggle-link:hover {
   text-decoration: underline;
 }
 
-
-/* ==========================================
-   3. MASTER DASHBOARD WORKSPACE (FULL-SCREEN)
-   ========================================== */
-.dashboard-container {
+/* =========================================================================
+   ALERT BANNERS & SUCCESS NOTIFICATIONS
+   ========================================================================= */
+.alert-box {
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 24px;
   width: 100%;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.success-alert {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.error-alert {
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #b91c1c;
+}
+
+/* =========================================================================
+   DASHBOARD BACKPANEL FRAMEWORK STYLING
+   ========================================================================= */
+.dashboard-wrapper {
   min-height: 100vh;
-  padding: 2.5rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
 }
 
 .dashboard-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
+  padding: 16px 40px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-@media (max-width: 640px) {
-  .dashboard-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1.25rem;
-  }
-}
-
-.header-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 0.5rem 0;
-}
-
-.header-subtitle {
-  font-size: 0.95rem;
-  color: #64748b;
-  margin: 0;
-}
-
-.header-actions {
+.header-brand {
   display: flex;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 15px;
 }
 
-/* Button UI Variants */
-.btn-primary, .btn-secondary, .btn-retry {
-  padding: 0.625rem 1.25rem;
+.header-brand h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.role-tag {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+}
+
+.user-profile-zone {
+  display: flex;
+  align-items: center;
+  gap: 24px;
   font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background-color: #2563eb;
-  color: #ffffff;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: #1d4ed8;
-}
-
-.btn-secondary {
-  background-color: #ffffff;
   color: #475569;
-  border: 1px solid #cbd5e1;
 }
 
-.btn-secondary:hover {
-  background-color: #f1f5f9;
+.logout-btn {
+  padding: 8px 16px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.logout-btn:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
   border-color: #94a3b8;
 }
 
+.dashboard-wrapper .alert-box {
+  max-width: calc(100% - 80px);
+  margin: 20px auto 0 auto;
+}
 
-/* Metrics KPI Panels Grid */
+/* METRICS INDEX grid PANEL */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  width: 100%;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding: 24px 40px;
 }
 
 .metric-card {
-  background: #ffffff;
+  background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-  transition: transform 0.2s ease;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
 }
 
-.metric-card:hover {
-  transform: translateY(-2px);
-}
-
-.metric-label {
-  font-size: 0.875rem;
+.metric-card h3 {
+  font-size: 0.85rem;
   font-weight: 600;
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin: 0 0 0.75rem 0;
+  margin-bottom: 12px;
 }
 
-.metric-value {
+.metric-num {
   font-size: 2.25rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #0f172a;
-  margin: 0;
 }
 
-.metric-unit {
+.unit-label, .sub-label {
   font-size: 1rem;
   font-weight: 500;
-  color: #94a3b8;
+  color: #64748b;
 }
 
-/* Alert Condition for Cards */
-.metric-card.alert-active {
-  border-color: #fca5a5;
-  background-color: #fff5f5;
-}
-
-.metric-card.alert-active .metric-value {
+.metric-num.critical {
   color: #dc2626;
 }
 
+/* MASTER TABLE PANEL */
+.workspace-layout {
+  padding: 0 40px 40px 40px;
+  flex: 1;
+}
 
-/* Data Registry Table Section */
-.registry-container {
-  width: 100%;
-  background: #ffffff;
+.table-container {
+  background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01);
   overflow: hidden;
 }
 
-.registry-title-bar {
-  padding: 1.25rem 1.5rem;
+.table-header-row {
+  padding: 20px 24px;
   border-bottom: 1px solid #e2e8f0;
-  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.registry-title {
+.table-header-row h3 {
   font-size: 1.1rem;
   font-weight: 700;
   color: #0f172a;
-  margin: 0;
 }
 
-.registry-empty {
-  padding: 4rem 2rem;
-  text-align: center;
-  color: #64748b;
-  font-size: 0.95rem;
-}
-
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.registry-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 0.925rem;
-}
-
-.table-head {
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.table-head th {
-  padding: 1rem 1.5rem;
+.action-btn-primary {
+  padding: 10px 20px;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #475569;
-}
-
-.table-row {
-  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
-.table-row:hover {
+.action-btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.inventory-table th {
   background-color: #f8fafc;
-}
-
-.table-row td {
-  padding: 1rem 1.5rem;
-  color: #334155;
-}
-
-.cell-name {
-  font-weight: 600;
-  color: #0f172a !important;
-}
-
-.cell-sku {
-  font-family: monospace;
-  color: #64748b;
-}
-
-/* Row Badges Statuses */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.badge-success {
-  background-color: #dcfce7;
-  color: #15803d;
-}
-
-.badge-alert {
-  background-color: #fee2e2;
-  color: #b91c1c;
-}
-
-
-/* ==========================================
-   4. LOADING / TELEMETRY STATE OVERLAYS
-   ========================================== */
-.loading-screen, .error-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100vw;
-  height: 100vh;
-  background-color: #f8fafc;
-}
-
-.loading-text {
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #64748b;
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-.error-card {
-  text-align: center;
-  padding: 2.5rem;
-  background: #ffffff;
-  border: 1px solid #fee2e2;
-  border-radius: 12px;
-  max-width: 400px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-}
-
-.error-title {
-  font-size: 1.25rem;
+  padding: 14px 24px;
+  font-size: 0.75rem;
   font-weight: 700;
-  color: #991b1b;
-  margin: 0 0 0.5rem 0;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.error-subtitle {
+.inventory-table td {
+  padding: 16px 24px;
   font-size: 0.9rem;
-  color: #64748b;
-  margin: 0 0 1.5rem 0;
-  line-height: 1.5;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.btn-retry {
-  background-color: #dc2626;
-  color: #ffffff;
+.inventory-table tr:last-child td {
+  border-bottom: none;
+}
+
+.empty-table-cell {
+  text-align: center;
+  padding: 60px !important;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.status-badge.ok {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.low {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.edit-mini-btn, .delete-mini-btn {
+  background: none;
   border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 12px;
 }
 
-.btn-retry:hover {
-  background-color: #b91c1c;
-}
+.edit-mini-btn { color: #2563eb; }
+.edit-mini-btn:hover { text-decoration: underline; }
+.delete-mini-btn { color: #dc2626; }
+.delete-mini-btn:hover { text-decoration: underline; }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+/* =========================================================================
+   ANIMATION KEYFRAMES
+   ========================================================================= */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }

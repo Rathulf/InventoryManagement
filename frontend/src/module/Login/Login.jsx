@@ -1,95 +1,114 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "../../assets/styles.css";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [successNotice, setSuccessNotice] = useState("");
+
+  useEffect(() => {
+    // Intercept redirect flags generated out of registration completions
+    const pendingNotice = sessionStorage.getItem("registerSuccessNotification");
+    if (pendingNotice) {
+      setSuccessNotice(pendingNotice);
+      sessionStorage.removeItem("registerSuccessNotification");
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    setSuccessNotice("");
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const authenticatedUser = await response.json();
+        localStorage.setItem("activeUser", JSON.stringify(authenticatedUser));
         
-        localStorage.setItem('userName', data.name);
-        localStorage.setItem('userEmail', data.email);
-        localStorage.setItem('userRole', data.role);
-
-        navigate('/dashboard');
-      } else {
-        setError('Invalid email or password.');
+        // Pass validation flag onwards down the storage engine to trigger user greetings
+        sessionStorage.setItem("loginSuccessNotification", "true");
+        navigate("/dashboard");
+        return;
       }
+
+      if (response.status === 401) {
+        setError("Invalid email or password combination specified.");
+      } else {
+        setError("Authentication check failed. Access denied.");
+      }
+
     } catch (err) {
-      setError('Cannot connect to the server.');
+      setError("API Connection Offline. Failed to handle account security assertion rules.");
+      console.error(err);
     }
   };
 
   return (
     <div className="auth-container">
-      <div className="split-card">
-        <div className="banner-side">
-          <div className="logo-placeholder">STOCKPULSE</div>
-          <div className="banner-content">
-            <h2 className="banner-title">Smart Stock Control</h2>
-            <p className="banner-subtitle">
-              Manage your inventory tracking workflows securely inside a unified data panel.
-            </p>
-          </div>
-          <div className="banner-footer">© 2026 StockPulse Engine</div>
+      <div className="banner-side">
+        <div className="logo-placeholder">IMS LOGO</div>
+        <div className="banner-content">
+          <h1 className="banner-title">STOCKPULSE HUB</h1>
+          <p className="banner-subtitle">
+            Real-time enterprise warehouse controls and automated inventory ledger distribution panels.
+          </p>
+        </div>
+        <div className="banner-footer">SYSTEM VERSION 1.0</div>
+      </div>
+
+      <div className="form-side">
+        <div className="form-header">
+          <h2 className="form-title">Sign In</h2>
+          <p className="form-subtitle">Enter your corporate credentials to access your dashboard.</p>
         </div>
 
-        <div className="form-side">
-          <div className="form-header">
-            <h1 className="form-title">Welcome back</h1>
-            <p className="form-subtitle">Please enter your workspace account credentials.</p>
+        {successNotice && <div className="alert-box success-alert">{successNotice}</div>}
+        {error && <div className="alert-box error-alert">{error}</div>}
+
+        <form className="auth-form" onSubmit={handleLogin}>
+          <div className="input-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              placeholder="josc@gmail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
 
-          {error && <div className="error-box">{error}</div>}
-
-          <form className="auth-form" onSubmit={handleLogin}>
-            <div className="input-group">
-              <label htmlFor="email">Email Address</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="input-group">
-              <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            <button type="submit" className="submit-button">
-              Sign In
-            </button>
-          </form>
-
-          <div className="form-footer">
-            Don't have an account?
-            <span className="toggle-link" onClick={() => navigate('/register')}>
-              Create Account
-            </span>
+          <div className="input-group">
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
+
+          <button type="submit" className="submit-button">
+            Login
+          </button>
+        </form>
+
+        <div className="form-footer">
+          Don't have an account? 
+          <span className="toggle-link" onClick={() => navigate("/register")}>
+            Sign Up
+          </span>
         </div>
       </div>
     </div>

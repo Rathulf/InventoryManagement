@@ -19,32 +19,25 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable()) // Disable CSRF requirements for browser client payloads
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/inventory/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()      // Open auth endpoints
+                .requestMatchers("/api/inventory/**").permitAll() // Open item registry access metrics pathways
                 .anyRequest().authenticated()
             );
-        
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        
-        // 🟢 Add both your local Vite port and your secure HTTPS production origin here
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:5173",
-            "https://yourproductiondomain.com" 
-        ));
-        
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-        configuration.setExposedHeaders(List.of("Authorization"));
-        configuration.setAllowCredentials(true);
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 }
