@@ -37,6 +37,7 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Assumes you have a LoginRequest DTO class set up for Retrofit
             val request = LoginRequest(email, password)
 
             RetrofitClient.instance.loginUser(request).enqueue(object : Callback<AuthResponse> {
@@ -55,8 +56,10 @@ class LoginActivity : AppCompatActivity() {
 
                         Toast.makeText(this@LoginActivity, "Welcome back, ${session.name}!", Toast.LENGTH_SHORT).show()
 
-                        // 🟢 Active Redirect: Takes you directly to your Dashboard Activity workspace
+                        // 🟢 Active Redirect: Explicitly using this@LoginActivity and session properties
                         val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
+                        intent.putExtra("USER_ROLE", session.role)
+                        intent.putExtra("USER_NAME", session.name)
                         startActivity(intent)
                         finish()
                     } else {
@@ -66,7 +69,6 @@ class LoginActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
                     Toast.makeText(this@LoginActivity, "Server network error: ${t.message}", Toast.LENGTH_SHORT).show()
-
                 }
             })
         }
