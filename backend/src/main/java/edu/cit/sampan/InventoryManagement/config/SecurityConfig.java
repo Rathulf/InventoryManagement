@@ -9,6 +9,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -18,26 +19,43 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable()) // Disable CSRF requirements for browser client payloads
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()      // Open auth endpoints
-                .requestMatchers("/api/inventory/**").permitAll() // Open item registry access metrics pathways
-                .anyRequest().authenticated()
-            );
+                // Disable CSRF token tracking since we are debugging locally
+                .csrf(csrf -> csrf.disable())
+
+                // Activate our explicit global CORS settings block
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // Configure route endpoint permissions
+                .authorizeHttpRequests(auth -> auth
+                        // Permissive rule 1: Allow your authentication login path endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // Permissive rule 2: Allow all metric analytics endpoints
+                        .requestMatchers("/api/dashboard-analytics/**").permitAll()
+
+                        // Permissive rule 3: UNBLOCK POST, DELETE, and GET actions for inventory management
+                        .requestMatchers("/api/inventory/**").permitAll()
+
+                        // Fallback catch-all condition rule
+                        .anyRequest().permitAll()
+                );
+
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Allows your React Vite frontend port to communicate with your IntelliJ port safely
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }

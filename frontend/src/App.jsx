@@ -1,21 +1,26 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./module/Login/Login.jsx";
-import Register from "./module/Register/Register.jsx";
-import Dashboard from "./module/Dashboard/Dashboard.jsx";
-import "./assets/styles.css";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './module/Login/Login';
+import Register from './module/Register/Register';
+import Dashboard from './module/Dashboard/Dashboard';
 
-function App() {
+export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        {/* 1. Catch-all Root Path: Automatically redirects users to the login screen */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* 2. Authentication Route Paths */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />}/>
+        <Route path="/register" element={<Register />} />
+
+        {/* 3. Operational Analytics Management Workspace */}
         <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* 4. Fallback 404 Route: Safety net redirect for invalid URL inputs */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );
 }
-
-export default App;
