@@ -19,29 +19,26 @@ public class EmployeeController {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    // GET: Fetch all employees for the table
     @GetMapping
     public ResponseEntity<List<Employee>> getAllEmployees() {
         return ResponseEntity.ok(employeeRepository.findAll());
     }
 
-    // POST: Add a new employee from the form
     @PostMapping
     public ResponseEntity<Employee> addEmployee(@RequestBody Employee employee) {
+        employee.setRequiresPasswordChange(true); // Ensure new staff are flagged for reset
         Employee savedEmployee = employeeRepository.save(employee);
         return ResponseEntity.ok(savedEmployee);
     }
 
-    // POST: Handle user login
-   @PostMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<?> loginEmployee(@RequestBody Map<String, String> credentials) {
         String email = credentials.get("email");
-        String password = credentials.get("password"); // Get the password from React
+        String password = credentials.get("password");
         
         Optional<Employee> employee = employeeRepository.findByEmail(email);
 
         if (employee.isPresent()) {
-            // Check if the password matches!
             if (employee.get().getPassword().equals(password)) {
                 if (employee.get().getStatus().equals("Active")) {
                     return ResponseEntity.ok(employee.get());
@@ -55,7 +52,19 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found.");
     }
 
-    // DELETE: Remove an employee
+    @PutMapping("/{id}/change-password")
+    public ResponseEntity<?> changePassword(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        Optional<Employee> empOpt = employeeRepository.findById(id);
+        if (empOpt.isPresent()) {
+            Employee emp = empOpt.get();
+            emp.setPassword(request.get("newPassword"));
+            emp.setRequiresPasswordChange(false); // Turn the flag off
+            employeeRepository.save(emp);
+            return ResponseEntity.ok(emp);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         if (employeeRepository.existsById(id)) {

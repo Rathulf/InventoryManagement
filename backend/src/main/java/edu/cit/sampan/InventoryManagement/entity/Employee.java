@@ -19,7 +19,8 @@ public class Employee {
     private String role; // "Admin" or "Staff"
     private String status;
     private String password; 
-
+    private boolean requiresPasswordChange = true;
+    
     // Default Constructor
     public Employee() {}
 
@@ -41,4 +42,7 @@ public class Employee {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public boolean isRequiresPasswordChange() { return requiresPasswordChange; }
+    public void setRequiresPasswordChange(boolean requiresPasswordChange) { this.requiresPasswordChange = requiresPasswordChange; }
 }

@@ -28,6 +28,7 @@ public class InventoryManagementApplication {
                 defaultAdmin.setPassword("admin123");
                 defaultAdmin.setRole("Admin");
                 defaultAdmin.setStatus("Active");
+                defaultAdmin.setRequiresPasswordChange(false);
                 
                 employeeRepository.save(defaultAdmin);
                 System.out.println("Default Admin user created successfully!");
