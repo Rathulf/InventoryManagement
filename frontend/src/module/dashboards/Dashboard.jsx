@@ -5,6 +5,7 @@ import StaffDashboard from "./staffdashboard/StaffDashboard";
 import ViewStock from "./components/ViewStock";
 import ManageStock from "./components/ManageStock"; 
 import GenerateReports from "./components/GenerateReport";
+import Alerts from "./components/Alerts";
 import "../../assets/styles.css"; 
 
 export default function Dashboard() {
@@ -30,6 +31,7 @@ export default function Dashboard() {
         {view === 'ViewStock' && <ViewStock />}
         {view === 'ManageStock' && <ManageStock />}
         {view === 'Reports' && <GenerateReports />}
+        {view === 'Alerts' && <Alerts />}
       </main>
     </div>
   );
