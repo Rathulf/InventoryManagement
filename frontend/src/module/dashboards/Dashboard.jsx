@@ -4,7 +4,7 @@ import AdminDashboard from "./admindashboard/AdminDashboard";
 import StaffDashboard from "./staffdashboard/StaffDashboard";
 import ViewStock from "./components/ViewStock";
 import ManageStock from "./components/ManageStock"; 
-
+import GenerateReports from "./components/GenerateReport";
 import "../../assets/styles.css"; 
 
 export default function Dashboard() {
@@ -12,11 +12,13 @@ export default function Dashboard() {
   const [summary, setSummary] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/dashboard/summary')
-      .then(res => res.json())
-      .then(data => setSummary(data))
-      .catch(err => console.error("Error fetching data:", err));
-  }, []);
+    if (view === 'Analytics') {
+      fetch('http://localhost:8080/api/dashboard/summary')
+        .then(res => res.json())
+        .then(data => setSummary(data))
+        .catch(err => console.error("Error fetching data:", err));
+    }
+  }, [view]);
 
   return (
     <div className="dashboard-wrapper"> 
@@ -27,6 +29,7 @@ export default function Dashboard() {
         {view === 'Analytics' && <AdminDashboard summary={summary} />}
         {view === 'ViewStock' && <ViewStock />}
         {view === 'ManageStock' && <ManageStock />}
+        {view === 'Reports' && <GenerateReports />}
       </main>
     </div>
   );
