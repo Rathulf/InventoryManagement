@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 @RestController
 @RequestMapping("/api")
@@ -100,5 +103,33 @@ public class InventoryController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+    @GetMapping("/inventory/export/csv")
+    public void exportInventoryCSV(HttpServletResponse response) throws IOException {
+        // Set the response headers to trigger a file download in the browser
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"warehouse_inventory_report.csv\"");
+
+        // Fetch all items
+        List<InventoryItem> items = inventoryRepository.findAll();
+
+        // Write the CSV data
+        PrintWriter writer = response.getWriter();
+
+        // 1. Write the CSV Header
+        writer.println("ID,SKU,Product Name,Category,Price,Quantity");
+
+        // 2. Write the data rows
+        for (InventoryItem item : items) {
+            writer.println(String.format("%d,%s,%s,%s,%.2f,%d",
+                    item.getId(),
+                    item.getSku() != null ? item.getSku() : "N/A",
+                    // Wrap name in quotes in case it contains commas
+                    "\"" + item.getName() + "\"",
+                    item.getCategory(),
+                    item.getPrice() != null ? item.getPrice() : 0.0,
+                    item.getQuantity()
+            ));
+        }
     }
 }
