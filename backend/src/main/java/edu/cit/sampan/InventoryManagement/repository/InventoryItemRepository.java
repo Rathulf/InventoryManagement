@@ -11,15 +11,21 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
 
     boolean existsBySku(String sku);
 
-    // Low stock alert query
+    // Existing methods
     @Query("SELECT i FROM InventoryItem i WHERE i.quantity <= i.minThreshold")
     List<InventoryItem> findLowStockItems();
 
-    // Valuation calculation with safety fallbacks
     @Query("SELECT SUM(i.quantity * i.price) FROM InventoryItem i")
     Double calculateTotalValuation();
 
-    // Extracted top operational category
-    @Query("SELECT i.category FROM InventoryItem i GROUP BY i.category ORDER BY COUNT(i) DESC LIMIT 1")
+    @Query(value = "SELECT category FROM inventory_items GROUP BY category ORDER BY COUNT(*) DESC LIMIT 1", nativeQuery = true)
     String findTopCategory();
+
+    long countByQuantityLessThanEqual(Integer threshold);
+
+    @Query(value = "SELECT COUNT(*) FROM inventory_transactions WHERE type = 'IN' AND DATE(transaction_date) = CURRENT_DATE", nativeQuery = true)
+    long countStockInToday();
+
+    @Query(value = "SELECT COUNT(*) FROM inventory_transactions WHERE type = 'OUT' AND DATE(transaction_date) = CURRENT_DATE", nativeQuery = true)
+    long countStockOutToday();
 }
