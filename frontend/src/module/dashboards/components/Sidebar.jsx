@@ -1,10 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Sidebar = ({ setView, userRole, currentView }) => {
+// 1. Accept the userName prop
+const Sidebar = ({ setView, userRole, userName, currentView }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    // 2. Clear the user's session data from the browser when they log out
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
     navigate('/login');
   };
 
@@ -12,6 +16,11 @@ const Sidebar = ({ setView, userRole, currentView }) => {
     <nav className="sidebar">
       <div className="sidebar-header">
         <h2 className="sidebar-title">StockPulse Hub</h2>
+        
+        {/* 3. Display the personalized greeting */}
+        <p className="sidebar-role" style={{ color: '#f8fafc', fontWeight: 'bold', fontSize: '15px', marginTop: '12px' }}>
+          Welcome, {userName}
+        </p>
         <p className="sidebar-role">Role: {userRole}</p>
       </div>
 
@@ -22,9 +31,11 @@ const Sidebar = ({ setView, userRole, currentView }) => {
         {userRole === 'Admin' && (
           <>
             <li className={currentView === 'ManageStock' ? 'active' : ''} onClick={() => setView('ManageStock')}>🛠️ Manage Inventory</li>
+            <li className={currentView === 'ManageEmployees' ? 'active' : ''} onClick={() => setView('ManageEmployees')}>👥 Manage Employees</li>
             <li className={currentView === 'Reports' ? 'active' : ''} onClick={() => setView('Reports')}>📝 Generate Reports</li>
           </>
         )}
+        
         <li className={currentView === 'Alerts' ? 'active' : ''} onClick={() => setView('Alerts')}>🔔 System Alerts</li>
       </ul>
 

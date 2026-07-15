@@ -4,34 +4,54 @@ import AdminDashboard from "./admindashboard/AdminDashboard";
 import StaffDashboard from "./staffdashboard/StaffDashboard";
 import ViewStock from "./components/ViewStock";
 import ManageStock from "./components/ManageStock"; 
-import GenerateReports from "./components/GenerateReport";
+import ManageEmployees from "./components/ManageEmployees";
+import GenerateReport from "./components/GenerateReport";
 import Alerts from "./components/Alerts";
 import "../../assets/styles.css"; 
 
 export default function Dashboard() {
   const [view, setView] = useState('Analytics');
   const [summary, setSummary] = useState(null);
+  
+  // 1. Read both the role and name from localStorage
+  const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || 'Staff');
+  const [userName, setUserName] = useState(localStorage.getItem('userName') || 'User');
+
+  const [lowStockThreshold, setLowStockThreshold] = useState(10);
 
   useEffect(() => {
     if (view === 'Analytics') {
-      fetch('http://localhost:8080/api/dashboard/summary')
+      fetch(`http://localhost:8080/api/dashboard/summary?threshold=${lowStockThreshold}`)
         .then(res => res.json())
         .then(data => setSummary(data))
         .catch(err => console.error("Error fetching data:", err));
     }
-  }, [view]);
+  }, [view, lowStockThreshold]);
 
   return (
     <div className="dashboard-wrapper"> 
-      <Sidebar setView={setView} userRole="Admin" currentView={view} />
+      {/* 2. Pass the userName as a prop to the Sidebar */}
+      <Sidebar 
+        setView={setView} 
+        userRole={userRole} 
+        userName={userName} 
+        currentView={view} 
+      />
       
       <main className="main-content">
-        {/* 2. Add the conditional rendering for ViewStock */}
-        {view === 'Analytics' && <AdminDashboard summary={summary} />}
-        {view === 'ViewStock' && <ViewStock />}
-        {view === 'ManageStock' && <ManageStock />}
-        {view === 'Reports' && <GenerateReports />}
-        {view === 'Alerts' && <Alerts />}
+        {view === 'Analytics' && userRole === 'Admin' && (
+          <AdminDashboard summary={summary} threshold={lowStockThreshold} setThreshold={setLowStockThreshold} />
+        )}
+        {view === 'Analytics' && userRole === 'Staff' && (
+          <StaffDashboard summary={summary} threshold={lowStockThreshold} setThreshold={setLowStockThreshold} />
+        )}
+        
+        {view === 'ViewStock' && <ViewStock threshold={lowStockThreshold} />}
+        {view === 'Alerts' && <Alerts threshold={lowStockThreshold} />} 
+
+        {view === 'ManageStock' && userRole === 'Admin' && <ManageStock />}
+        {view === 'ManageEmployees' && userRole === 'Admin' && <ManageEmployees />}
+        {view === 'Reports' && userRole === 'Admin' && <GenerateReport />} 
       </main>
     </div>
   );

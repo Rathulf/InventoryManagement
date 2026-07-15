@@ -23,8 +23,6 @@ public class InventoryController {
     @Autowired
     private InventoryItemRepository inventoryRepository;
 
-    // --- Existing Methods (Keep your existing getAllItems, createItem, deleteItem) ---
-
     // 4. Low Stock Alerts
     @GetMapping("/dashboard-analytics/low-stock")
     public ResponseEntity<List<InventoryItem>> getLowStockAlerts() {
@@ -49,31 +47,28 @@ public class InventoryController {
 
     // --- NEW: Dashboard Summary for Cards (Admin vs Staff) ---
     @GetMapping("/dashboard/summary")
-    public ResponseEntity<Map<String, Object>> getDashboardSummary() {
-        // 1. Fetch all items from the database
+    public ResponseEntity<Map<String, Object>> getDashboardSummary(@RequestParam(defaultValue = "100") int threshold) {
         List<InventoryItem> items = inventoryRepository.findAll();
-
-        // 2. Calculate the metrics
+        
         long totalProducts = items.size();
-        long lowStockCount = items.stream().filter(item -> item.getQuantity() < 10).count();
-
-        // Calculate total value (Price * Quantity for each item)
+        // Use the dynamic threshold variable here
+        long lowStockCount = items.stream().filter(item -> item.getQuantity() < threshold).count();
+        
         double totalValue = items.stream()
                 .mapToDouble(item -> (item.getPrice() != null ? item.getPrice() : 0.0) * item.getQuantity())
                 .sum();
-
-        // 3. Get a list of the specific low stock items for the bottom table
+                
+        // Use the dynamic threshold variable here too
         List<InventoryItem> lowStockProducts = items.stream()
-                .filter(item -> item.getQuantity() < 10)
+                .filter(item -> item.getQuantity() < threshold)
                 .collect(Collectors.toList());
 
-        // 4. Package it all into a JSON object
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalProducts", totalProducts);
         summary.put("lowStock", lowStockCount);
         summary.put("totalValue", totalValue);
         summary.put("lowStockProducts", lowStockProducts);
-
+        
         return ResponseEntity.ok(summary);
     }
 

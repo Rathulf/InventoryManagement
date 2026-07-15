@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Alerts() {
+export default function Alerts({ threshold }) {
   const [lowStockItems, setLowStockItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Reuse our existing inventory endpoint
     fetch('http://localhost:8080/api/inventory')
       .then(res => res.json())
       .then(data => {
-        // Filter the data to only show items with less than 10 stock
-        const criticalStock = data.filter(item => item.quantity < 10);
+        // Filter the data to only show items strictly less than the dynamic threshold
+        const criticalStock = data.filter(item => item.quantity < threshold);
         setLowStockItems(criticalStock);
         setIsLoading(false);
       })
@@ -18,7 +17,7 @@ export default function Alerts() {
         console.error("Error fetching alerts:", err);
         setIsLoading(false);
       });
-  }, []);
+  }, [threshold]); // Re-run if the threshold changes
 
   return (
     <div className="inventory-section mt-0">
@@ -31,7 +30,7 @@ export default function Alerts() {
         <p className="empty-table-state">Scanning system for alerts...</p>
       ) : lowStockItems.length === 0 ? (
         <div className="empty-alerts-placeholder">
-          ✅ All systems nominal. No low stock alerts at this time.
+          No items are currently below the low stock threshold ({threshold}).
         </div>
       ) : (
         <div className="alert-banner-container">
@@ -43,19 +42,15 @@ export default function Alerts() {
             {lowStockItems.map(item => (
               <div key={item.id} className="alert-row-item">
                 <div>
-                  <strong>{item.name}</strong> (SKU: {item.sku}) is running critically low.
+                  <strong>{item.name}</strong> (SKU: {item.sku || `SKU-${item.id}`}) is running critically low.
                   <br />
                   <span style={{ color: '#475569', fontSize: '13px' }}>
-                    Current Quantity: <span style={{ fontWeight: '800', color: '#991b1b' }}>{item.quantity}</span>
+                    Current Quantity: <span style={{ fontWeight: '800', color: '#991b1b' }}>{item.quantity}</span> (Threshold: {threshold})
                   </span>
                 </div>
                 
-                {/* 
-                  This button is currently visual. In the future, you could wire this 
-                  up to open a modal that updates the item's quantity via a PUT request!
-                */}
                 <button className="restock-action-trigger">
-                  + Restock Item
+                  Restock Item
                 </button>
               </div>
             ))}
