@@ -4,7 +4,6 @@ import edu.cit.sampan.InventoryManagement.dto.DashboardMetricsDTO;
 import edu.cit.sampan.InventoryManagement.entity.InventoryItem;
 import edu.cit.sampan.InventoryManagement.repository.InventoryItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +13,7 @@ import java.util.Map;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -49,12 +49,31 @@ public class InventoryController {
 
     // --- NEW: Dashboard Summary for Cards (Admin vs Staff) ---
     @GetMapping("/dashboard/summary")
-    public ResponseEntity<Map<String, Object>> getDashboardSummaryDefault() {
+    public ResponseEntity<Map<String, Object>> getDashboardSummary() {
+        // 1. Fetch all items from the database
+        List<InventoryItem> items = inventoryRepository.findAll();
+
+        // 2. Calculate the metrics
+        long totalProducts = items.size();
+        long lowStockCount = items.stream().filter(item -> item.getQuantity() < 10).count();
+
+        // Calculate total value (Price * Quantity for each item)
+        double totalValue = items.stream()
+                .mapToDouble(item -> (item.getPrice() != null ? item.getPrice() : 0.0) * item.getQuantity())
+                .sum();
+
+        // 3. Get a list of the specific low stock items for the bottom table
+        List<InventoryItem> lowStockProducts = items.stream()
+                .filter(item -> item.getQuantity() < 10)
+                .collect(Collectors.toList());
+
+        // 4. Package it all into a JSON object
         Map<String, Object> summary = new HashMap<>();
-        summary.put("totalProducts", inventoryRepository.count());
-        summary.put("lowStockCount", inventoryRepository.countByQuantityLessThanEqual(5));
-        summary.put("totalValue", inventoryRepository.calculateTotalValuation() != null ?
-                inventoryRepository.calculateTotalValuation() : 0.0);
+        summary.put("totalProducts", totalProducts);
+        summary.put("lowStock", lowStockCount);
+        summary.put("totalValue", totalValue);
+        summary.put("lowStockProducts", lowStockProducts);
+
         return ResponseEntity.ok(summary);
     }
 
