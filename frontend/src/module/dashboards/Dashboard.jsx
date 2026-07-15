@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import AdminDashboard from "./admindashboard/AdminDashboard";
 import StaffDashboard from "./staffdashboard/StaffDashboard";
+import ViewStock from "./components/ViewStock"; 
 import "../../assets/styles.css"; 
 
 export default function Dashboard() {
@@ -20,7 +21,9 @@ export default function Dashboard() {
       <Sidebar setView={setView} userRole="Admin" currentView={view} />
       
       <main className="main-content">
+        {/* 2. Add the conditional rendering for ViewStock */}
         {view === 'Analytics' && <AdminDashboard summary={summary} />}
+        {view === 'ViewStock' && <ViewStock />}
       </main>
     </div>
   );
