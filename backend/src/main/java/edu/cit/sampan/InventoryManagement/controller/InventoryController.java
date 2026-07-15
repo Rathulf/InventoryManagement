@@ -85,4 +85,20 @@ public class InventoryController {
         List<InventoryItem> items = inventoryRepository.findAll();
         return ResponseEntity.ok(items);
     }
+    @PostMapping("/inventory")
+    public ResponseEntity<InventoryItem> addInventoryItem(@RequestBody InventoryItem item) {
+        // The repository saves the incoming JSON payload into the PostgreSQL database
+        InventoryItem savedItem = inventoryRepository.save(item);
+        return ResponseEntity.ok(savedItem);
+    }
+
+    // Delete an inventory item by its ID
+    @DeleteMapping("/inventory/{id}")
+    public ResponseEntity<Void> deleteInventoryItem(@PathVariable Long id) {
+        if (inventoryRepository.existsById(id)) {
+            inventoryRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }
