@@ -7,17 +7,17 @@ import ManageStock from "./components/ManageStock";
 import ManageEmployees from "./components/ManageEmployees";
 import GenerateReport from "./components/GenerateReport";
 import Alerts from "./components/Alerts";
+import AuditLogs from "./components/AuditLogs";
 import "../../assets/styles.css"; 
 
 export default function Dashboard() {
   const [view, setView] = useState('Analytics');
   const [summary, setSummary] = useState(null);
   
-  // 1. Read both the role and name from localStorage
   const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || 'Staff');
   const [userName, setUserName] = useState(localStorage.getItem('userName') || 'User');
 
-  const [lowStockThreshold, setLowStockThreshold] = useState(200); // Default threshold value
+  const [lowStockThreshold, setLowStockThreshold] = useState(200); //default threshold value
 
   useEffect(() => {
     if (view === 'Analytics') {
@@ -30,7 +30,6 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-wrapper"> 
-      {/* 2. Pass the userName as a prop to the Sidebar */}
       <Sidebar 
         setView={setView} 
         userRole={userRole} 
@@ -45,13 +44,12 @@ export default function Dashboard() {
         {view === 'Analytics' && userRole === 'Staff' && (
           <StaffDashboard summary={summary} threshold={lowStockThreshold} setThreshold={setLowStockThreshold} />
         )}
-        
         {view === 'ViewStock' && <ViewStock threshold={lowStockThreshold} />}
         {view === 'Alerts' && <Alerts threshold={lowStockThreshold} />} 
-
         {view === 'ManageStock' && userRole === 'Admin' && <ManageStock />}
         {view === 'ManageEmployees' && userRole === 'Admin' && <ManageEmployees />}
         {view === 'Reports' && userRole === 'Admin' && <GenerateReport />} 
+        {view === 'AuditLogs' && userRole === 'Admin' && <AuditLogs />} 
       </main>
     </div>
   );

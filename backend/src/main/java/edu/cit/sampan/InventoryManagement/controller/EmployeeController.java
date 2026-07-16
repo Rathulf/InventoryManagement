@@ -44,4 +44,18 @@ public class EmployeeController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        String email = credentials.get("email");
+        String password = credentials.get("password");
+
+        Optional<Employee> employee = employeeService.authenticateLogin(email, password);
+        
+        if (employee.isPresent()) {
+            return ResponseEntity.ok(employee.get());
+        } else {
+            return ResponseEntity.status(401).body("Invalid credentials or inactive account");
+        }
+    }
 }
