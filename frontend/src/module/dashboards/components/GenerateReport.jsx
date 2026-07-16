@@ -6,7 +6,7 @@ export default function GenerateReports() {
 
   // 1. Fetch the master inventory list when the page loads
   useEffect(() => {
-    fetch('http://localhost:8080/api/inventory')
+    fetch('http://localhost:8080/api/items')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch report data");
         return res.json();

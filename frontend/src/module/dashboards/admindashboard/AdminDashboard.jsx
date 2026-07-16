@@ -6,10 +6,22 @@ export default function AdminDashboard({ summary, threshold, setThreshold }) {
   const [fullInventory, setFullInventory] = useState([]);
   
   useEffect(() => {
-    fetch('http://localhost:8080/api/inventory')
-      .then(res => res.json())
-      .then(data => setFullInventory(data))
-      .catch(err => console.error("Error fetching inventory for search:", err));
+    fetch('http://localhost:8080/api/items')
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch items");
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+          setFullInventory(data);
+        } else {
+          setFullInventory([]);
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching inventory for search:", err);
+        setFullInventory([]); 
+      });
   }, []);
 
   const totalProducts = summary?.totalProducts || 0;

@@ -14,7 +14,7 @@ export default function ManageStock() {
 
   // 1. Safe Fetch Function
   const fetchInventory = () => {
-    fetch('http://localhost:8080/api/inventory')
+    fetch('http://localhost:8080/api/items')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch");
         return res.json();
@@ -35,9 +35,6 @@ export default function ManageStock() {
   useEffect(() => {
     fetchInventory();
   }, []);
-
-  // 2. THE MISSING FUNCTION RESTORED
-  // This allows you to actually type in the input fields
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
@@ -48,7 +45,7 @@ export default function ManageStock() {
   // 3. Add Item Function
   const handleAddItem = (e) => {
     e.preventDefault(); 
-    fetch('http://localhost:8080/api/inventory', {
+    fetch('http://localhost:8080/api/items', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -74,8 +71,7 @@ export default function ManageStock() {
   // 4. Delete Function
   const handleDelete = (id) => {
     if (!window.confirm("Are you sure you want to purge this record?")) return;
-
-    fetch(`http://localhost:8080/api/inventory/${id}`, {
+    fetch(`http://localhost:8080/api/items/${id}`, {
       method: 'DELETE'
     })
       .then(res => {

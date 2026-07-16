@@ -44,6 +44,7 @@ public class EmployeeService {
             emp.setStatus(newStatus);
             repository.save(emp);
             
+            // This hooks into the audit log we built earlier!
             auditLogService.logAction(
                 "UPDATE_STATUS", 
                 "System Admin", 
@@ -53,6 +54,27 @@ public class EmployeeService {
             return Optional.of(emp);
         }
         return Optional.empty();
+    }
+    
+    public Optional<Employee> authenticateLogin(String email, String password) {
+        Optional<Employee> empOpt = repository.findByEmail(email);
+        
+        if (empOpt.isPresent()) {
+            Employee emp = empOpt.get();
+            // Check if passwords match AND the account status is exactly "Active"
+            if (emp.getPassword().equals(password) && "Active".equalsIgnoreCase(emp.getStatus())) {
+                
+                // Automatically records the login in your system audit trail
+                auditLogService.logAction(
+                    "STAFF_LOGIN", 
+                    emp.getName(), 
+                    "User logged into the system"
+                );
+                
+                return Optional.of(emp);
+            }
+        }
+        return Optional.empty(); // Login failed
     }
 
     public boolean deleteEmployee(Long id) {

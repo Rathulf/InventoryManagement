@@ -69,7 +69,7 @@ class DashboardActivity : AppCompatActivity() {
     private fun fetchLiveInventoryData() {
         thread {
             try {
-                val url = URL("http://10.0.2.2:8080/api/inventory")
+                val url = URL("http://10.0.2.2:8080/api/items")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.connect()
@@ -116,7 +116,7 @@ class DashboardActivity : AppCompatActivity() {
             .setPositiveButton("Purge") { _, _ ->
                 thread {
                     try {
-                        val url = URL("http://10.0.2.2:8080/api/inventory/$itemId")
+                        val url = URL("http://10.0.2.2:8080/api/items/$itemId")
                         val connection = url.openConnection() as HttpURLConnection
                         connection.requestMethod = "DELETE"
                         connection.connect()
@@ -162,7 +162,7 @@ class DashboardActivity : AppCompatActivity() {
 
             thread {
                 try {
-                    val url = URL("http://10.0.2.2:8080/api/inventory")
+                    val url = URL("http://10.0.2.2:8080/api/items")
                     val connection = url.openConnection() as HttpURLConnection
                     connection.requestMethod = "POST"
                     connection.setRequestProperty("Content-Type", "application/json")
