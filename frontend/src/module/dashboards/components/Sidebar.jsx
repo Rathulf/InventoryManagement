@@ -33,6 +33,7 @@ const Sidebar = ({ setView, userRole, userName, currentView }) => {
             <li className={currentView === 'ManageStock' ? 'active' : ''} onClick={() => setView('ManageStock')}>🛠️ Manage Inventory</li>
             <li className={currentView === 'ManageEmployees' ? 'active' : ''} onClick={() => setView('ManageEmployees')}>👥 Manage Employees</li>
             <li className={currentView === 'Reports' ? 'active' : ''} onClick={() => setView('Reports')}>📝 Generate Reports</li>
+            <li className={currentView === 'AuditLogs' ? 'active' : ''} onClick={() => setView('AuditLogs')}>📜 Audit Logs</li>
           </>
         )}
         
