@@ -77,6 +77,26 @@ public class EmployeeService {
         return Optional.empty(); // Login failed
     }
 
+    public Optional<Employee> updatePassword(Long id, String newPassword) {
+        // Fixed: Uses the 'repository' variable you defined at the top of the file
+        Optional<Employee> employeeOpt = repository.findById(id);
+        
+        if (employeeOpt.isPresent()) {
+            Employee employee = employeeOpt.get();
+            
+            // Set the new password
+            employee.setPassword(newPassword);
+            
+            // Flip the flag so they aren't forced to reset it again
+            employee.setRequiresPasswordChange(false);
+            
+            // Save and return the updated employee
+            return Optional.of(repository.save(employee));
+        }
+        
+        return Optional.empty();
+    }
+
     public boolean deleteEmployee(Long id) {
         Optional<Employee> empOpt = repository.findById(id);
         if (empOpt.isPresent()) {
