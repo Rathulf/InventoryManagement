@@ -2,27 +2,42 @@ import React, { useState, useEffect } from 'react';
 
 export default function ManageStock() {
   const [inventory, setInventory] = useState([]);
+  
   const [formData, setFormData] = useState({
     sku: '',
     name: '',
     category: 'Electronics',
     price: '',
-    quantity: ''
+    quantity: '',
+    threshold: 200 
   });
 
-  // 1. Fetch items on load to populate the management table
+  // 1. Safe Fetch Function
   const fetchInventory = () => {
     fetch('http://localhost:8080/api/inventory')
-      .then(res => res.json())
-      .then(data => setInventory(data))
-      .catch(err => console.error("Error fetching inventory:", err));
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+          setInventory(data);
+        } else {
+          setInventory([]);
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching inventory:", err);
+        setInventory([]); 
+      });
   };
 
   useEffect(() => {
     fetchInventory();
   }, []);
 
-  // 2. Handle typing in the form fields (Fixes the frozen inputs)
+  // 2. THE MISSING FUNCTION RESTORED
+  // This allows you to actually type in the input fields
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
@@ -30,9 +45,9 @@ export default function ManageStock() {
     });
   };
 
-  // 3. Handle form submission (POST)
+  // 3. Add Item Function
   const handleAddItem = (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault(); 
     fetch('http://localhost:8080/api/inventory', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -43,13 +58,20 @@ export default function ManageStock() {
         return res.json();
       })
       .then(() => {
-        fetchInventory(); // Refresh the table
-        setFormData({ sku: '', name: '', category: 'Electronics', price: '', quantity: '' }); // Clear form
+        fetchInventory(); 
+        setFormData({ 
+          sku: '', 
+          name: '', 
+          category: 'Electronics', 
+          price: '', 
+          quantity: '', 
+          threshold: 200 
+        }); 
       })
       .catch(err => console.error("Error adding item:", err));
   };
 
-  // 4. Handle item deletion (DELETE)
+  // 4. Delete Function
   const handleDelete = (id) => {
     if (!window.confirm("Are you sure you want to purge this record?")) return;
 
@@ -58,7 +80,7 @@ export default function ManageStock() {
     })
       .then(res => {
         if (!res.ok) throw new Error("Failed to delete item");
-        fetchInventory(); // Refresh the table after deletion
+        fetchInventory(); 
       })
       .catch(err => console.error("Error deleting item:", err));
   };
@@ -82,6 +104,7 @@ export default function ManageStock() {
           
           <input type="number" name="price" placeholder="Price (₱)" value={formData.price} onChange={handleInputChange} min="0" step="0.01" required />
           <input type="number" name="quantity" placeholder="Quantity" value={formData.quantity} onChange={handleInputChange} min="0" required />
+          <input type="number" name="threshold" placeholder="Low Stock Threshold" value={formData.threshold} onChange={handleInputChange} min="0" required />
           
           <button type="submit" className="commit-record-btn">+ Add Record</button>
         </form>
@@ -97,20 +120,28 @@ export default function ManageStock() {
             <th>SKU</th>
             <th>Product Name</th>
             <th className="center-cell">Stock</th>
+            <th className="center-cell">Threshold</th>
             <th className="center-cell">Actions</th>
           </tr>
         </thead>
         <tbody>
           {inventory.length === 0 ? (
             <tr>
-              <td colSpan="4" className="empty-table-state">No products to manage.</td>
+              <td colSpan="5" className="empty-table-state">No products to manage.</td>
             </tr>
           ) : (
             inventory.map((item) => (
               <tr key={item.id}>
                 <td className="sku-cell">{item.sku}</td>
                 <td><strong>{item.name}</strong></td>
-                <td className="center-cell">{item.quantity}</td>
+                
+                <td className="center-cell">
+                  <span className={item.quantity <= item.threshold ? "danger-stock" : "normal-stock"}>
+                    {item.quantity}
+                  </span>
+                </td>
+                
+                <td className="center-cell">{item.threshold}</td>
                 <td className="center-cell">
                   <button onClick={() => handleDelete(item.id)} className="ledger-row-purge-btn">
                     Delete Stock

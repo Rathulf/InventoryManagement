@@ -17,7 +17,7 @@ export default function Dashboard() {
   const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || 'Staff');
   const [userName, setUserName] = useState(localStorage.getItem('userName') || 'User');
 
-  const [lowStockThreshold, setLowStockThreshold] = useState(10);
+  const [lowStockThreshold, setLowStockThreshold] = useState(200); // Default threshold value
 
   useEffect(() => {
     if (view === 'Analytics') {

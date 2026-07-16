@@ -11,8 +11,8 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
 
     boolean existsBySku(String sku);
 
-    // Existing methods
-    @Query("SELECT i FROM InventoryItem i WHERE i.quantity <= i.minThreshold")
+    // FIXED: Changed i.minThreshold to i.threshold to match the entity
+    @Query("SELECT i FROM InventoryItem i WHERE i.quantity <= i.threshold")
     List<InventoryItem> findLowStockItems();
 
     @Query("SELECT SUM(i.quantity * i.price) FROM InventoryItem i")

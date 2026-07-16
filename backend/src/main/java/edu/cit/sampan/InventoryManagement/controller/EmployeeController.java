@@ -65,6 +65,18 @@ public class EmployeeController {
         return ResponseEntity.notFound().build();
     }
 
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateEmployeeStatus(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        Optional<Employee> empOpt = employeeRepository.findById(id);
+        if (empOpt.isPresent()) {
+            Employee emp = empOpt.get();
+            emp.setStatus(request.get("status"));
+            employeeRepository.save(emp);
+            return ResponseEntity.ok(emp);
+        }
+        return ResponseEntity.notFound().build();
+    }
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         if (employeeRepository.existsById(id)) {

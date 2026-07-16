@@ -24,7 +24,7 @@ public class InventoryManagementApplication {
                 defaultAdmin.setName("System Admin");
                 
                 // Set this to the email you are trying to use in the screenshot!
-                defaultAdmin.setEmail("Tgenta@gmail.com"); 
+                defaultAdmin.setEmail("Sampan@gmail.com"); 
                 defaultAdmin.setPassword("admin123");
                 defaultAdmin.setRole("Admin");
                 defaultAdmin.setStatus("Active");

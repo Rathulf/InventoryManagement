@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 export default function AdminDashboard({ summary, threshold, setThreshold }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [fullInventory, setFullInventory] = useState([]);
-
+  
   useEffect(() => {
     fetch('http://localhost:8080/api/inventory')
       .then(res => res.json())

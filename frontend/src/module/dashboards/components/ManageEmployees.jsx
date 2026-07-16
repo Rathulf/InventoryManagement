@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 
 export default function ManageEmployees() {
   const [employees, setEmployees] = useState([]);
+  
   const [formData, setFormData] = useState({
-    name: '', email: '', password: '', role: 'Staff', status: 'Active'
+    name: '', email: '', password: '', role: 'Staff'
   });
 
   const fetchEmployees = () => {
@@ -26,10 +27,13 @@ export default function ManageEmployees() {
 
   const handleAddEmployee = (e) => {
     e.preventDefault();
+    
+    const payload = { ...formData, status: 'Active' };
+
     fetch('http://localhost:8080/api/employees', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(payload)
     })
       .then(res => {
         if (!res.ok) throw new Error("Failed to add employee");
@@ -37,13 +41,27 @@ export default function ManageEmployees() {
       })
       .then(() => {
         fetchEmployees();
-        setFormData({ name: '', email: '', password: '', role: 'Staff', status: 'Active' });
+        setFormData({ name: '', email: '', password: '', role: 'Staff' });
       })
       .catch(err => console.error("Error adding employee:", err));
   };
 
+  // NEW: Handle direct status changes from the table
+  const handleStatusChange = (id, newStatus) => {
+    fetch(`http://localhost:8080/api/employees/${id}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to update status");
+        fetchEmployees(); 
+      })
+      .catch(err => console.error("Error updating status:", err));
+  };
+
   const handleDelete = (id) => {
-    if (!window.confirm("Are you sure you want to remove this employee's access?")) return;
+    if (!window.confirm("Are you sure you want to permanently delete this employee?")) return;
     fetch(`http://localhost:8080/api/employees/${id}`, { method: 'DELETE' })
       .then(res => {
         if (!res.ok) throw new Error("Failed to delete employee");
@@ -65,12 +83,6 @@ export default function ManageEmployees() {
             <option value="Staff">Staff</option>
             <option value="Admin">Admin</option>
           </select>
-          
-          <select name="status" value={formData.status} onChange={handleInputChange} required>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-          
           <button type="submit" className="commit-record-btn">+ Add Employee</button>
         </form>
       </div>
@@ -101,11 +113,28 @@ export default function ManageEmployees() {
                     {emp.role}
                   </span>
                 </td>
+                
                 <td className="center-cell">
-                  {emp.status === 'Active' ? <span className="normal-stock">Active</span> : <span className="danger-stock">Inactive</span>}
+                  <select 
+                    value={emp.status} 
+                    onChange={(e) => handleStatusChange(emp.id, e.target.value)}
+                    style={{
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      color: emp.status === 'Active' ? '#10b981' : '#ef4444',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <option value="Active" style={{ color: '#000' }}>Active</option>
+                    <option value="Inactive" style={{ color: '#000' }}>Inactive</option>
+                  </select>
                 </td>
+                
                 <td className="center-cell">
-                  <button onClick={() => handleDelete(emp.id)} className="ledger-row-purge-btn">Revoke</button>
+                  <button onClick={() => handleDelete(emp.id)} className="ledger-row-purge-btn">Delete</button>
                 </td>
               </tr>
             ))
