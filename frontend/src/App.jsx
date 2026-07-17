@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginForm from "./module/login/LoginForm.jsx";
-import Register from './module/register/Register';
+import Register from './module/register/Register.js';
 import Dashboard from './module/dashboards/Dashboard';
 
 export default function App() {
