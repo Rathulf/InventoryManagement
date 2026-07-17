@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginForm from "./module/login/LoginForm.jsx";
-import Register from './module/register/RegisterForm.jsx';
+import RegisterForm from "./module/register/RegisterForm.jsx";
 import Dashboard from './module/dashboards/Dashboard';
 
 export default function App() {
@@ -12,14 +12,14 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
 
         {/* 2. Authentication Route Paths */}
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegisterForm />} />
+        <Route path="/login" element={<LoginForm/>} />
+        <Route path="/register" element={<RegisterForm/>} />
 
         {/* 3. Operational Analytics Management Workspace */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard/>} />
 
         {/* 4. Fallback 404 Route: Safety net redirect for invalid URL inputs */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace/>} />
       </Routes>
     </Router>
   );
