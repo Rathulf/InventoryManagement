@@ -21,7 +21,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (view === 'Analytics') {
-      fetch(`http://localhost:8080/api/dashboard/summary?threshold=${lowStockThreshold}`)
+      fetch(`https://stockpulse-cbdz.onrender.com/api/summary?threshold=${lowStockThreshold}`)
         .then(res => res.json())
         .then(data => setSummary(data))
         .catch(err => console.error("Error fetching data:", err));

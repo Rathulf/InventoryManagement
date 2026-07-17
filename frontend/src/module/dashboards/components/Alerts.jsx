@@ -7,7 +7,7 @@ export default function Alerts() {
 
   // 2. Fetch the data when the component loads
   useEffect(() => {
-    fetch('http://localhost:8080/api/items')
+    fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch");
         return res.json();

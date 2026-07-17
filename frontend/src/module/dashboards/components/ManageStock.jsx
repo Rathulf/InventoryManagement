@@ -14,7 +14,7 @@ export default function ManageStock() {
 
   // 1. Safe Fetch Function
   const fetchInventory = () => {
-    fetch('http://localhost:8080/api/items')
+    fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch");
         return res.json();

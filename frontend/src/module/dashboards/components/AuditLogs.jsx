@@ -4,7 +4,7 @@ export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/audit-logs')
+    fetch('https://stockpulse-cbdz.onrender.com/api/audit-logs')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch logs");
         return res.json();

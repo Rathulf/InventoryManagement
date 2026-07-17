@@ -5,7 +5,7 @@ export default function ViewStock() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/items')
+    fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch inventory");
         return res.json();

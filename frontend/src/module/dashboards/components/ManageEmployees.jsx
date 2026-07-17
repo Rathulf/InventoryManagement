@@ -8,7 +8,7 @@ export default function ManageEmployees() {
   });
 
   const fetchEmployees = () => {
-    fetch('http://localhost:8080/api/employees')
+    fetch('https://stockpulse-cbdz.onrender.com/api/employees')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setEmployees(data);
