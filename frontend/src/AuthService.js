@@ -26,10 +26,9 @@ export const login = async (email, password) => {
     throw new Error(errorText || "Login failed");
   }
   return response.json(); // Returns message, name, email, and role
+}; // <--- YOU ARE MISSING THIS CLOSING BRACKET!
 
-  export const changePassword = async (userId, newPassword) => {
-  // Assuming your backend uses /api/employees for this route. 
-  // If your BASE_URL in AuthService is "/api/auth", you might need to adjust this path to match your Spring Boot controller!
+export const changePassword = async (userId, newPassword) => {
   const response = await fetch(`https://stockpulse-cbdz.onrender.com/api/employees/${userId}/change-password`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -41,5 +40,4 @@ export const login = async (email, password) => {
     throw new Error(errorText || "Failed to update password");
   }
   return response.json();
-};
 };
