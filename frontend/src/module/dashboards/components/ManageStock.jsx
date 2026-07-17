@@ -110,44 +110,48 @@ export default function ManageStock() {
 
       {/* MANAGE ITEMS TABLE */}
       <h3>Manage Existing Stock</h3>
-      <table className="ledger-table-view">
-        <thead>
-          <tr>
-            <th>SKU</th>
-            <th>Product Name</th>
-            <th className="center-cell">Stock</th>
-            <th className="center-cell">Threshold</th>
-            <th className="center-cell">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inventory.length === 0 ? (
+      
+      {/* WRAPPED IN RESPONSIVE CONTAINER */}
+      <div className="table-responsive-container">
+        <table className="ledger-table-view">
+          <thead>
             <tr>
-              <td colSpan="5" className="empty-table-state">No products to manage.</td>
+              <th>SKU</th>
+              <th>Product Name</th>
+              <th className="center-cell">Stock</th>
+              <th className="center-cell">Threshold</th>
+              <th className="center-cell">Actions</th>
             </tr>
-          ) : (
-            inventory.map((item) => (
-              <tr key={item.id}>
-                <td className="sku-cell">{item.sku}</td>
-                <td><strong>{item.name}</strong></td>
-                
-                <td className="center-cell">
-                  <span className={item.quantity <= item.threshold ? "danger-stock" : "normal-stock"}>
-                    {item.quantity}
-                  </span>
-                </td>
-                
-                <td className="center-cell">{item.threshold}</td>
-                <td className="center-cell">
-                  <button onClick={() => handleDelete(item.id)} className="ledger-row-purge-btn">
-                    Delete Stock
-                  </button>
-                </td>
+          </thead>
+          <tbody>
+            {inventory.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="empty-table-state">No products to manage.</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              inventory.map((item) => (
+                <tr key={item.id}>
+                  <td className="sku-cell">{item.sku}</td>
+                  <td><strong>{item.name}</strong></td>
+                  
+                  <td className="center-cell">
+                    <span className={item.quantity <= item.threshold ? "danger-stock" : "normal-stock"}>
+                      {item.quantity}
+                    </span>
+                  </td>
+                  
+                  <td className="center-cell">{item.threshold}</td>
+                  <td className="center-cell">
+                    <button onClick={() => handleDelete(item.id)} className="ledger-row-purge-btn">
+                      Delete Stock
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

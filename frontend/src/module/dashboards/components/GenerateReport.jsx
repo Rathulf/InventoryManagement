@@ -81,45 +81,47 @@ export default function GenerateReports() {
 
       <hr className="section-divider" />
 
-      {/* TABLE PREVIEW */}
-      <table className="ledger-table-view">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>SKU</th>
-            <th>Product Name</th>
-            <th>Category</th>
-            <th className="center-cell">Price</th>
-            <th className="center-cell">Current Stock</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inventory.length === 0 ? (
+      {/* WRAPPED IN RESPONSIVE CONTAINER FOR SCROLLING */}
+      <div className="table-responsive-container">
+        <table className="ledger-table-view">
+          <thead>
             <tr>
-              <td colSpan="6" className="empty-table-state">Loading ledger data...</td>
+              <th>ID</th>
+              <th>SKU</th>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th className="center-cell">Price</th>
+              <th className="center-cell">Current Stock</th>
             </tr>
-          ) : (
-            inventory.map((item) => (
-              <tr key={item.id}>
-                <td style={{ color: '#94a3b8' }}>#{item.id}</td>
-                <td>{item.sku}</td>
-                <td><strong>{item.name}</strong></td>
-                <td>
-                  <span className="badge-cat" style={{ backgroundColor: '#e2e8f0', color: '#475569' }}>
-                    {item.category}
-                  </span>
-                </td>
-                <td className="center-cell">₱{parseFloat(item.price || 0).toFixed(2)}</td>
-                <td className="center-cell">
-                  <span className={item.quantity <= (item.threshold || 200) ? "danger-stock" : "normal-stock"}>
-                    {item.quantity}
-                  </span>
-                </td>
+          </thead>
+          <tbody>
+            {inventory.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="empty-table-state">Loading ledger data...</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              inventory.map((item) => (
+                <tr key={item.id}>
+                  <td style={{ color: '#94a3b8' }}>#{item.id}</td>
+                  <td>{item.sku}</td>
+                  <td><strong>{item.name}</strong></td>
+                  <td>
+                    <span className="badge-cat" style={{ backgroundColor: '#e2e8f0', color: '#475569' }}>
+                      {item.category}
+                    </span>
+                  </td>
+                  <td className="center-cell">₱{parseFloat(item.price || 0).toFixed(2)}</td>
+                  <td className="center-cell">
+                    <span className={item.quantity <= (item.threshold || 200) ? "danger-stock" : "normal-stock"}>
+                      {item.quantity}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       
     </div>
   );
