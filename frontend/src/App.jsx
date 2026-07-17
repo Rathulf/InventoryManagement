@@ -12,8 +12,8 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
 
         {/* 2. Authentication Route Paths */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/register" element={<RegisterForm />} />
 
         {/* 3. Operational Analytics Management Workspace */}
         <Route path="/dashboard" element={<Dashboard />} />
