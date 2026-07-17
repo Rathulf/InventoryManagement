@@ -9,7 +9,7 @@ export default function StaffDashboard() {
 
   const fetchTransactions = () => {
     setIsLoading(true);
-    fetch('http://localhost:8080/api/transactions') 
+    fetch('https://stockpulse-cbdz.onrender.com/api/transactions') 
       .then(res => res.json())
       .then(data => {
         setTransactions(Array.isArray(data) ? data.sort((a, b) => b.id - a.id) : []);
