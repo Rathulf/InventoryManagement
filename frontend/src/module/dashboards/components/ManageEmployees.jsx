@@ -90,57 +90,61 @@ export default function ManageEmployees() {
       <hr className="section-divider" />
 
       <h3>Employee Directory</h3>
-      <table className="ledger-table-view">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th className="center-cell">Role</th>
-            <th className="center-cell">Status</th>
-            <th className="center-cell">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees.length === 0 ? (
-            <tr><td colSpan="5" className="empty-table-state">No employees found.</td></tr>
-          ) : (
-            employees.map((emp) => (
-              <tr key={emp.id}>
-                <td><strong>{emp.name}</strong></td>
-                <td>{emp.email}</td>
-                <td className="center-cell">
-                  <span className="badge-cat" style={{ backgroundColor: emp.role === 'Admin' ? '#38bdf8' : '#e2e8f0', color: emp.role === 'Admin' ? '#fff' : '#475569' }}>
-                    {emp.role}
-                  </span>
-                </td>
-                
-                <td className="center-cell">
-                  <select 
-                    value={emp.status} 
-                    onChange={(e) => handleStatusChange(emp.id, e.target.value)}
-                    style={{
-                      border: 'none',
-                      backgroundColor: 'transparent',
-                      color: emp.status === 'Active' ? '#10b981' : '#ef4444',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      outline: 'none',
-                      textAlign: 'center'
-                    }}
-                  >
-                    <option value="Active" style={{ color: '#000' }}>Active</option>
-                    <option value="Inactive" style={{ color: '#000' }}>Inactive</option>
-                  </select>
-                </td>
-                
-                <td className="center-cell">
-                  <button onClick={() => handleDelete(emp.id)} className="ledger-row-purge-btn">Delete</button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+      
+      {/* WRAPPED IN RESPONSIVE CONTAINER FOR SCROLLING */}
+      <div className="table-responsive-container">
+        <table className="ledger-table-view">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th className="center-cell">Role</th>
+              <th className="center-cell">Status</th>
+              <th className="center-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {employees.length === 0 ? (
+              <tr><td colSpan="5" className="empty-table-state">No employees found.</td></tr>
+            ) : (
+              employees.map((emp) => (
+                <tr key={emp.id}>
+                  <td><strong>{emp.name}</strong></td>
+                  <td>{emp.email}</td>
+                  <td className="center-cell">
+                    <span className="badge-cat" style={{ backgroundColor: emp.role === 'Admin' ? '#38bdf8' : '#e2e8f0', color: emp.role === 'Admin' ? '#fff' : '#475569' }}>
+                      {emp.role}
+                    </span>
+                  </td>
+                  
+                  <td className="center-cell">
+                    <select 
+                      value={emp.status} 
+                      onChange={(e) => handleStatusChange(emp.id, e.target.value)}
+                      style={{
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        color: emp.status === 'Active' ? '#10b981' : '#ef4444',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <option value="Active" style={{ color: '#000' }}>Active</option>
+                      <option value="Inactive" style={{ color: '#000' }}>Inactive</option>
+                    </select>
+                  </td>
+                  
+                  <td className="center-cell">
+                    <button onClick={() => handleDelete(emp.id)} className="ledger-row-purge-btn">Delete</button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

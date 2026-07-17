@@ -30,38 +30,41 @@ export default function AuditLogs() {
         </p>
       </div>
 
-      <table className="ledger-table-view">
-        <thead>
-          <tr>
-            <th>Date & Time</th>
-            <th>Action</th>
-            <th>Performed By</th>
-            <th>Details</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.length === 0 ? (
+      {/* WRAPPED IN RESPONSIVE CONTAINER */}
+      <div className="table-responsive-container">
+        <table className="ledger-table-view">
+          <thead>
             <tr>
-              <td colSpan="4" className="empty-table-state">No system events logged yet.</td>
+              <th>Date & Time</th>
+              <th>Action</th>
+              <th>Performed By</th>
+              <th>Details</th>
             </tr>
-          ) : (
-            logs.map((log) => (
-              <tr key={log.id}>
-                <td style={{ color: '#64748b', fontSize: '14px' }}>
-                  {formatDateTime(log.timestamp)}
-                </td>
-                <td>
-                  <span className="badge-cat" style={{ backgroundColor: '#e0f2fe', color: '#0369a1', fontWeight: 'bold' }}>
-                    {log.action}
-                  </span>
-                </td>
-                <td><strong>{log.performedBy}</strong></td>
-                <td>{log.details}</td>
+          </thead>
+          <tbody>
+            {logs.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="empty-table-state">No system events logged yet.</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              logs.map((log) => (
+                <tr key={log.id}>
+                  <td style={{ color: '#64748b', fontSize: '14px' }}>
+                    {formatDateTime(log.timestamp)}
+                  </td>
+                  <td>
+                    <span className="badge-cat" style={{ backgroundColor: '#e0f2fe', color: '#0369a1', fontWeight: 'bold' }}>
+                      {log.action}
+                    </span>
+                  </td>
+                  <td><strong>{log.performedBy}</strong></td>
+                  <td>{log.details}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
