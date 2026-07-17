@@ -38,7 +38,7 @@ useEffect(() => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch('http://localhost:8080/api/transactions/process', {
+    fetch('https://stockpulse-cbdz.onrender.com/api/transactions/process', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

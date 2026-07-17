@@ -12,7 +12,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/employees")
-@CrossOrigin(origins = "http://localhost:5173")
 public class EmployeeController {
 
     @Autowired
@@ -59,12 +58,10 @@ public class EmployeeController {
         }
     }
 
-    // THE NEW ENDPOINT: Catches the request from Login.jsx
     @PutMapping("/{id}/change-password")
     public ResponseEntity<?> changePassword(@PathVariable Long id, @RequestBody Map<String, String> requestBody) {
         String newPassword = requestBody.get("newPassword");
         
-        // Hands the ID and new password over to the service to process
         Optional<Employee> updatedEmp = employeeService.updatePassword(id, newPassword);
 
         if (updatedEmp.isPresent()) {

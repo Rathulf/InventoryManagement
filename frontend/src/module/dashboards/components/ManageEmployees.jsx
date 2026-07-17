@@ -30,7 +30,7 @@ export default function ManageEmployees() {
     
     const payload = { ...formData, status: 'Active' };
 
-    fetch('http://localhost:8080/api/employees', {
+    fetch('https://stockpulse-cbdz.onrender.com/api/employees', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -48,7 +48,7 @@ export default function ManageEmployees() {
 
   // NEW: Handle direct status changes from the table
   const handleStatusChange = (id, newStatus) => {
-    fetch(`http://localhost:8080/api/employees/${id}/status`, {
+    fetch(`https://stockpulse-cbdz.onrender.com/api/employees/${id}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
@@ -62,7 +62,7 @@ export default function ManageEmployees() {
 
   const handleDelete = (id) => {
     if (!window.confirm("Are you sure you want to permanently delete this employee?")) return;
-    fetch(`http://localhost:8080/api/employees/${id}`, { method: 'DELETE' })
+    fetch(`https://stockpulse-cbdz.onrender.com/api/employees/${id}`, { method: 'DELETE' })
       .then(res => {
         if (!res.ok) throw new Error("Failed to delete employee");
         fetchEmployees();

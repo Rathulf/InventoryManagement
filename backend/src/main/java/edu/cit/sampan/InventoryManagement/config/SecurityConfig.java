@@ -47,8 +47,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allows your React Vite frontend port to communicate with your IntelliJ port safely
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        // ALLOW BOTH LOCALHOST AND YOUR LIVE RENDER FRONTEND
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://inventorymanagement-2qbg.onrender.com"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setExposedHeaders(List.of("Authorization"));

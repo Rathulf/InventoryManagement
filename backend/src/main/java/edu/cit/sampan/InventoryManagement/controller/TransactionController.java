@@ -11,13 +11,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/transactions")
-@CrossOrigin(origins = "http://localhost:5173")
 public class TransactionController {
 
     @Autowired
     private TransactionService transactionService;
 
-    // This handles GET http://localhost:8080/api/transactions
     @GetMapping
     public ResponseEntity<List<InventoryTransaction>> getAllTransactions() {
         return ResponseEntity.ok(transactionService.getAllTransactions());

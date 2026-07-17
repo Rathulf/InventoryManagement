@@ -26,7 +26,7 @@ export const login = async (email, password) => {
     throw new Error(errorText || "Login failed");
   }
   return response.json(); // Returns message, name, email, and role
-}; // <--- YOU ARE MISSING THIS CLOSING BRACKET!
+};
 
 export const changePassword = async (userId, newPassword) => {
   const response = await fetch(`https://stockpulse-cbdz.onrender.com/api/employees/${userId}/change-password`, {
