@@ -1,86 +1,115 @@
 import React, { useState, useEffect } from 'react';
-import StockTransaction from '../components/StockTransaction'; 
 
-export default function StaffDashboard() {
-  const [transactions, setTransactions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [viewType, setViewType] = useState('IN');
-
-  const fetchTransactions = () => {
-    setIsLoading(true);
-    fetch('https://stockpulse-cbdz.onrender.com/api/transactions') 
-      .then(res => res.json())
+export default function StaffDashboard({ summary, threshold, setThreshold }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [fullInventory, setFullInventory] = useState([]);
+  
+  useEffect(() => {
+    fetch('https://stockpulse-cbdz.onrender.com/api/items')
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch items");
+        return res.json();
+      })
       .then(data => {
-        setTransactions(Array.isArray(data) ? data.sort((a, b) => b.id - a.id) : []);
-        setIsLoading(false);
+        if (Array.isArray(data)) {
+          setFullInventory(data);
+        } else {
+          setFullInventory([]);
+        }
       })
       .catch(err => {
-        console.error(err);
-        setTransactions([]);
-        setIsLoading(false);
+        console.error("Error fetching inventory for search:", err);
+        setFullInventory([]); 
       });
-  };
+  }, []);
 
-  useEffect(() => { fetchTransactions(); }, []);
+  const totalProducts = summary?.totalProducts || 0;
+  const lowStock = summary?.lowStock || 0;
+  const lowStockProducts = summary?.lowStockProducts || [];
+
+  const displayedItems = searchQuery.trim() === '' 
+    ? lowStockProducts 
+    : fullInventory.filter(item => 
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (item.sku && item.sku.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
 
   return (
     <div className="inventory-section mt-0">
-      <div className="operations-header">
-        <h3>Staff Operations</h3>
-        <p className="operations-desc">Record incoming deliveries or outgoing warehouse stock.</p>
-        <div className="action-buttons-container">
-          <button onClick={() => { setViewType('IN'); setIsModalOpen(true); }} className="btn-action btn-stock-in">📥 Stock In</button>
-          <button onClick={() => { setViewType('OUT'); setIsModalOpen(true); }} className="btn-action btn-stock-out">📤 Stock Out</button>
+      
+      {/* METRICS CARDS */}
+      <div className="metrics-layout-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+        <div className="metric-display-card item-count">
+          <h4>Total Products</h4>
+          <p className="value">{totalProducts}</p>
+        </div>
+        <div className="metric-display-card category-count">
+          <h4>Low Stock</h4>
+          <p className="value">{lowStock}</p>
         </div>
       </div>
 
-      <hr className="section-divider" />
-
-      <div className="transactions-card">
-        <h3>Recent Transactions</h3>
+      <div className="inventory-section">
         
-        {isLoading ? (
-          <p className="table-state-msg msg-loading">Loading transactions...</p>
-        ) : transactions.length === 0 ? (
-          <p className="table-state-msg msg-empty">No transactions recorded.</p>
-        ) : (
-          /* SCROLLABLE WRAPPER */
-          <div className="table-responsive-container">
-            <table className="ledger-table-view">
-              <thead>
-                <tr>
-                  <th>Transaction ID</th>
-                  <th>Type</th>
-                  <th>Item ID</th>
-                  <th className="center-cell">Quantity</th>
-                  <th>Performed By</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((tx) => (
-                  <tr key={tx.id}>
-                    <td>TXN-{tx.id}</td>
-                    <td className={tx.type === 'IN' ? 'tx-type-in' : 'tx-type-out'}>{tx.type}</td>
-                    <td>Product #{tx.itemId}</td>
-                    <td className="center-cell tx-quantity">{tx.type === 'IN' ? '+' : '-'}{tx.quantity}</td>
-                    <td>{tx.performedBy}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* DYNAMIC CONTROLS BAR: Threshold Setting + Search Bar */}
+        <div className="search-filter-controls-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <label style={{ fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+              Low Stock Threshold:
+            </label>
+            <input 
+              type="number" 
+              className="search-input-box" 
+              value={threshold}
+              onChange={(e) => setThreshold(Math.max(1, Number(e.target.value)))}
+              style={{ width: '80px', padding: '8px 12px', margin: 0 }}
+              min="1"
+            />
           </div>
-        )}
-      </div>
 
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button onClick={() => setIsModalOpen(false)} className="modal-close-btn">&times;</button>
-            <StockTransaction initialType={viewType} isLocked={true} />
-          </div>
+          <input 
+            type="text" 
+            className="search-input-box" 
+            placeholder="🔍 Search by product name or SKU..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ maxWidth: '300px', margin: 0 }}
+          />
         </div>
-      )}
+
+        <table className="ledger-table-view">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th className="center-cell">Stock Level</th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayedItems.length === 0 ? (
+              <tr>
+                <td colSpan="2" className="empty-table-state">
+                  {searchQuery.trim() === '' 
+                    ? `No items with stock below ${threshold}. Everything is looking good!` 
+                    : `No items found matching "${searchQuery}"`}
+                </td>
+              </tr>
+            ) : (
+              displayedItems.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <strong>{item.name}</strong> <span style={{ color: '#64748b', fontSize: '12px' }}>({item.sku})</span>
+                  </td>
+                  <td className={`center-cell ${item.quantity < threshold ? 'danger-stock' : 'normal-stock'}`} style={{ display: 'table-cell' }}>
+                    {item.quantity}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      
     </div>
   );
 }

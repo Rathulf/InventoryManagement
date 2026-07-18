@@ -11,7 +11,6 @@ export default function StockTransaction({ initialType = 'IN', isLocked = false 
     performedBy: 'Staff Member'
   });
 
-JavaScript
 useEffect(() => {
   // Updated to point to your live Render backend
   fetch('https://stockpulse-cbdz.onrender.com/api/items')
