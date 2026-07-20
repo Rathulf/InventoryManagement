@@ -1,5 +1,6 @@
 package com.example.inventorymanagement
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,8 @@ class InventoryAdapter(
     private val isUserAdmin: Boolean,
     private val onPurgeClicked: (String, String) -> Unit
 ) : RecyclerView.Adapter<InventoryAdapter.InventoryViewHolder>() {
+
+    private var currentThreshold: Int = 0
 
     class InventoryViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvSku: TextView = view.findViewById(R.id.tvRowSku)
@@ -31,11 +34,19 @@ class InventoryAdapter(
         val item = itemList[position]
         val itemId = item.optString("id", "")
         val itemName = item.optString("name", "Unknown Item")
+        val qty = item.optInt("quantity", 0)
 
         holder.tvSku.text = item.optString("sku", "N/A")
         holder.tvName.text = itemName
         holder.tvCategory.text = item.optString("category", "General")
-        holder.tvQuantity.text = "${item.optInt("quantity", 0)} units"
+        holder.tvQuantity.text = "$qty units"
+
+        // HIGHLIGHT LOGIC: Turn the text red if stock falls below the threshold
+        if (currentThreshold > 0 && qty < currentThreshold) {
+            holder.tvQuantity.setTextColor(Color.parseColor("#DC2626")) // Red alert
+        } else {
+            holder.tvQuantity.setTextColor(Color.parseColor("#64748B")) // Default slate gray
+        }
 
         if (isUserAdmin && itemId.isNotEmpty()) {
             holder.btnPurge.visibility = View.VISIBLE
@@ -47,8 +58,9 @@ class InventoryAdapter(
 
     override fun getItemCount(): Int = itemList.size
 
-    fun updateData(newList: List<JSONObject>) {
+    fun updateData(newList: List<JSONObject>, newThreshold: Int = 0) {
         itemList = newList
+        currentThreshold = newThreshold
         notifyDataSetChanged()
     }
 }

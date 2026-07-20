@@ -15,24 +15,29 @@ data class AuthResponse(val name: String, val email: String, val role: String)
 data class InventoryItem(
     val id: Long,
     val name: String,
-    val sku: String,
-    val qty: Int,
-    val status: String
+    val sku: String?,
+    // Changed from 'qty' to 'quantity' to perfectly match your backend JSON payload
+    val quantity: Int,
+    val category: String?
 )
 
 interface AuthApi {
-    @POST("api/auth/register")
+    // Updated from /api/auth to /api/employees
+    @POST("api/employees/register")
     fun registerUser(@Body request: RegisterRequest): Call<Void>
 
-    @POST("api/auth/login")
+    // Updated from /api/auth to /api/employees
+    @POST("api/employees/login")
     fun loginUser(@Body request: LoginRequest): Call<AuthResponse>
 
-    @GET("api/inventory")
+    // Updated from /api/inventory to /api/items
+    @GET("api/items")
     fun getInventory(): Call<List<InventoryItem>>
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    // Pointing directly to your live production server on Render
+    private const val BASE_URL = "https://stockpulse-cbdz.onrender.com/"
 
     val instance: AuthApi by lazy {
         Retrofit.Builder()

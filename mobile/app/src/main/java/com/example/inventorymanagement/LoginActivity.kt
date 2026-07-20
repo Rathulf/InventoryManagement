@@ -72,10 +72,5 @@ class LoginActivity : AppCompatActivity() {
                 }
             })
         }
-
-        tvToRegister.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
-            finish()
-        }
     }
 }

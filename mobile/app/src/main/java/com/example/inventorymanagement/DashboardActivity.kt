@@ -1,6 +1,12 @@
 package com.example.inventorymanagement
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -8,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -26,24 +33,39 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var tvTotalVolume: TextView
     private lateinit var fabAddItem: FloatingActionButton
 
+    // Search and Threshold UI variables
+    private lateinit var etSearch: EditText
+    private lateinit var etThreshold: EditText
+
     private lateinit var rvInventory: RecyclerView
     private lateinit var inventoryAdapter: InventoryAdapter
 
     private var currentUserRole: String = "STAFF"
 
+    // Master list to hold data for local searching
+    private var fullInventoryList = listOf<JSONObject>()
+    private var currentThreshold = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
+
+        // Connect the toolbar for the dropdown menu
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
 
         tvUserRoleBadge = findViewById(R.id.tvUserRoleBadge)
         tvTotalSkus = findViewById(R.id.tvTotalSkus)
         tvTotalVolume = findViewById(R.id.tvTotalVolume)
         fabAddItem = findViewById(R.id.fabAddItem)
 
+        // Initialize the new inputs
+        etSearch = findViewById(R.id.etSearch)
+        etThreshold = findViewById(R.id.etThreshold)
+
         currentUserRole = intent.getStringExtra("USER_ROLE") ?: "STAFF"
         val activeUsername = intent.getStringExtra("USER_NAME") ?: "Operator"
 
-        // Initialize lists with admin privileges checking flag
         rvInventory = findViewById(R.id.rvInventory)
         rvInventory.layoutManager = LinearLayoutManager(this)
 
@@ -63,13 +85,96 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         fabAddItem.setOnClickListener { showRegisterAssetDialog() }
+
+        setupSearchAndFilterListeners()
         fetchLiveInventoryData()
+    }
+
+    // --- MENU LOGIC ---
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.dashboard_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                Toast.makeText(this, "Syncing data...", Toast.LENGTH_SHORT).show()
+                fetchLiveInventoryData()
+                true
+            }
+            R.id.action_logout -> {
+                performLogout()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun performLogout() {
+        // Clear cached session
+        val sharedPreferences = getSharedPreferences("StockPulseAuth", Context.MODE_PRIVATE)
+        sharedPreferences.edit().clear().apply()
+
+        // Redirect to Login and clear back stack
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
+    // --- FILTER & DATA LOGIC ---
+
+    private fun setupSearchAndFilterListeners() {
+        etSearch.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) { applyFilters() }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        etThreshold.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                currentThreshold = s?.toString()?.toIntOrNull() ?: 0
+                applyFilters()
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+    }
+
+    private fun applyFilters() {
+        val query = etSearch.text.toString().trim().lowercase()
+
+        // Filter based on search box OR low stock threshold
+        val filteredList = if (query.isEmpty() && currentThreshold > 0) {
+            fullInventoryList.filter { it.optInt("quantity", 0) < currentThreshold }
+        } else if (query.isNotEmpty()) {
+            fullInventoryList.filter {
+                it.optString("name", "").lowercase().contains(query) ||
+                        it.optString("sku", "").lowercase().contains(query)
+            }
+        } else {
+            fullInventoryList
+        }
+
+        var grossVolume = 0
+        for (itemObj in filteredList) {
+            grossVolume += itemObj.optInt("quantity", 0)
+        }
+
+        runOnUiThread {
+            tvTotalSkus.text = filteredList.size.toString()
+            tvTotalVolume.text = "$grossVolume units"
+            inventoryAdapter.updateData(filteredList, currentThreshold)
+        }
     }
 
     private fun fetchLiveInventoryData() {
         thread {
             try {
-                val url = URL("http://10.0.2.2:8080/api/items")
+                // Pointing to live Render URL
+                val url = URL("https://stockpulse-cbdz.onrender.com/api/items")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.connect()
@@ -88,19 +193,12 @@ class DashboardActivity : AppCompatActivity() {
                         rawList.add(jsonArray.getJSONObject(i))
                     }
 
-                    // 🟢 UNIQUE PROTECTION FILTER LAYER: Eliminates matching SKU duplicates
+                    // Eliminates matching SKU duplicates
                     val uniqueItemList = rawList.distinctBy { it.optString("sku", "N/A").trim().uppercase() }
 
-                    var grossVolume = 0
-                    for (itemObj in uniqueItemList) {
-                        grossVolume += itemObj.optInt("quantity", 0)
-                    }
-
-                    runOnUiThread {
-                        tvTotalSkus.text = uniqueItemList.size.toString()
-                        tvTotalVolume.text = "$grossVolume units"
-                        inventoryAdapter.updateData(uniqueItemList)
-                    }
+                    // Save to master list, then apply filters
+                    fullInventoryList = uniqueItemList
+                    applyFilters()
                 }
             } catch (e: Exception) {
                 runOnUiThread { Toast.makeText(this, "Network error synchronizing ledger data.", Toast.LENGTH_SHORT).show() }
@@ -116,7 +214,7 @@ class DashboardActivity : AppCompatActivity() {
             .setPositiveButton("Purge") { _, _ ->
                 thread {
                     try {
-                        val url = URL("http://10.0.2.2:8080/api/items/$itemId")
+                        val url = URL("https://stockpulse-cbdz.onrender.com/api/items/$itemId")
                         val connection = url.openConnection() as HttpURLConnection
                         connection.requestMethod = "DELETE"
                         connection.connect()
@@ -162,7 +260,7 @@ class DashboardActivity : AppCompatActivity() {
 
             thread {
                 try {
-                    val url = URL("http://10.0.2.2:8080/api/items")
+                    val url = URL("https://stockpulse-cbdz.onrender.com/api/items")
                     val connection = url.openConnection() as HttpURLConnection
                     connection.requestMethod = "POST"
                     connection.setRequestProperty("Content-Type", "application/json")
