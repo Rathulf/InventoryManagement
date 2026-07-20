@@ -93,6 +93,40 @@
                 android:textColor="#0F172A"
                 android:layout_marginBottom="12dp"/>
 
+            <!-- NEW DYNAMIC CONTROLS BAR: Search and Threshold -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp"
+                android:weightSum="3">
+
+                <!-- Threshold Input -->
+                <EditText
+                    android:id="@+id/etThreshold"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="#FFFFFF"
+                    android:hint="Min Qty"
+                    android:inputType="number"
+                    android:paddingHorizontal="16dp"
+                    android:textSize="14sp" />
+
+                <!-- Search Input -->
+                <EditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="2"
+                    android:background="#FFFFFF"
+                    android:hint="🔍 Search Name or SKU..."
+                    android:inputType="text"
+                    android:paddingHorizontal="16dp"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvInventory"
                 android:layout_width="match_parent"
@@ -110,4 +144,6 @@
         android:backgroundTint="#007FFF"
         android:src="@android:drawable/ic_input_add"
         app:tint="#FFFFFF"
-        android:visibility="gone"/> </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        android:visibility="gone"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

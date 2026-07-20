@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">InventoryManagement</string>
+    <string name="menu_refresh">Refresh Data</string>
+    <string name="menu_logout">Logout</string>
 </resources>
