@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function StaffDashboard({ summary, threshold, setThreshold, onTransactionComplete }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -10,24 +10,43 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
   const [transactionType, setTransactionType] = useState('IN');
   const [transactionQty, setTransactionQty] = useState('');
   const [message, setMessage] = useState(null);
+
+  // Custom searchable dropdown state
+  const [dropdownSearch, setDropdownSearch] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
  
   const fetchInventory = () => {
-    fetch('https://stockpulse-cbdz.onrender.com/api/items')
+    return fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch items");
         return res.json();
       })
       .then(data => {
-        setFullInventory(Array.isArray(data) ? data : []);
+        const inventoryData = Array.isArray(data) ? data : [];
+        setFullInventory(inventoryData);
+        return inventoryData;
       })
       .catch(err => {
         console.error("Error fetching inventory for search:", err);
         setFullInventory([]);
+        return [];
       });
   };
 
   useEffect(() => {
     fetchInventory();
+  }, []);
+
+  // Close custom dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const totalProducts = summary?.totalProducts || 0;
@@ -43,6 +62,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
 
   const openTransactionForm = (type) => {
     setSelectedItemId('');
+    setDropdownSearch('');
     setTransactionType(type);
     setTransactionQty('');
     setMessage(null);
@@ -85,10 +105,10 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
 
       setMessage({ type: 'success', text: 'Processed successfully!' });
       
-      if (onTransactionComplete) {
-        await onTransactionComplete();
-      }
-      fetchInventory();
+      await Promise.all([
+        fetchInventory(),
+        onTransactionComplete ? onTransactionComplete() : Promise.resolve()
+      ]);
 
       setTimeout(() => {
         setShowForm(false);
@@ -100,6 +120,12 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
   };
 
   const activeItem = fullInventory.find(i => i.id.toString() === selectedItemId.toString());
+
+  // Filtered list for the custom searchable dropdown
+  const filteredDropdownItems = fullInventory.filter(item =>
+    item.name.toLowerCase().includes(dropdownSearch.toLowerCase()) ||
+    (item.sku && item.sku.toLowerCase().includes(dropdownSearch.toLowerCase()))
+  );
 
   return (
     <div className="inventory-section mt-0">
@@ -116,7 +142,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
         </div>
       </div>
 
-      {/* STAFF OPERATIONS SECTION WITH MATCHING LAYOUT CLASSES */}
+      {/* STAFF OPERATIONS SECTION */}
       <div className="transactions-card" style={{ marginBottom: '24px' }}>
         <div className="operations-header">
           <h3 style={{ margin: '0 0 8px 0' }}>Staff Operations</h3>
@@ -167,13 +193,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
             style={{ maxWidth: '300px', margin: 0 }}
           />
         </div>
-        
-        <button 
-              type="submit" 
-              className={`submit-btn ${transactionType === 'IN' ? 'btn-in' : 'btn-out'}`}>
-                Confirm {transactionType === 'IN' ? 'Stock In' : 'Stock Out'}
-        </button>
-        
+
         <div className="table-responsive-container">
           <table className="ledger-table-view">
             <thead>
@@ -224,7 +244,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
                 {activeItem ? (
                   <>Selected: <strong>{activeItem.name}</strong> (Current Stock: {activeItem.quantity})</>
                 ) : (
-                  'Choose an item to process stock movement.'
+                  'Search and choose an item to process stock movement.'
                 )}
               </p>
             </div>
@@ -237,23 +257,75 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
 
             <form className="stock-form" onSubmit={handleFormSubmit}>
               
-              {/* SELECT PRODUCT DROPDOWN */}
-              <div className="form-group">
+              {/* SEARCHABLE & SCROLLABLE DROPDOWN */}
+              <div className="form-group" style={{ position: 'relative' }} ref={dropdownRef}>
                 <label>Select Product:</label>
-                <select 
-                  name="itemId" 
+                <div 
                   className="form-control" 
-                  value={selectedItemId} 
-                  onChange={(e) => setSelectedItemId(e.target.value)} 
-                  required
+                  onClick={() => setIsDropdownOpen(true)}
+                  style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff' }}
                 >
-                  <option value="" disabled>-- Choose an Item --</option>
-                  {fullInventory.map(item => (
-                    <option key={item.id} value={item.id}>
-                      {item.name} (SKU: {item.sku} - Stock: {item.quantity})
-                    </option>
-                  ))}
-                </select>
+                  <span style={{ color: activeItem ? '#0f172a' : '#94a3b8' }}>
+                    {activeItem ? `${activeItem.name} (SKU: ${activeItem.sku} - Stock: ${activeItem.quantity})` : '-- Search by name or SKU --'}
+                  </span>
+                  <span>▼</span>
+                </div>
+
+                {isDropdownOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: '#fff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    zIndex: 1000,
+                    marginTop: '4px'
+                  }}>
+                    <div style={{ padding: '8px', borderBottom: '1px solid #e2e8f0' }}>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="🔍 Type name or SKU to filter..."
+                        value={dropdownSearch}
+                        onChange={(e) => setDropdownSearch(e.target.value)}
+                        autoFocus
+                        style={{ margin: 0 }}
+                      />
+                    </div>
+                    <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                      {filteredDropdownItems.length === 0 ? (
+                        <div style={{ padding: '10px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                          No matching products found
+                        </div>
+                      ) : (
+                        filteredDropdownItems.map(item => (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              setSelectedItemId(item.id.toString());
+                              setIsDropdownOpen(false);
+                              setDropdownSearch('');
+                            }}
+                            style={{
+                              padding: '10px 12px',
+                              cursor: 'pointer',
+                              borderBottom: '1px solid #f1f5f9',
+                              fontSize: '14px',
+                              backgroundColor: selectedItemId === item.id.toString() ? '#f8fafc' : 'transparent'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedItemId === item.id.toString() ? '#f8fafc' : 'transparent'}
+                          >
+                            <strong>{item.name}</strong> <span style={{ color: '#64748b', fontSize: '12px' }}>({item.sku})</span> — Stock: {item.quantity}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -270,7 +342,11 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
                 />
               </div>
               
-              
+              <button 
+                type="submit" 
+                className={`submit-btn ${transactionType === 'IN' ? 'btn-in' : 'btn-out'}`}>
+                Confirm {transactionType === 'IN' ? 'Stock In' : 'Stock Out'}
+              </button>
             </form>
           </div>
         </div>
