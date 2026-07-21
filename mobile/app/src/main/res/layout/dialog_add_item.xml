@@ -1,30 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Register New Inventory Asset"
-        android:textSize="18sp"
+        android:text="Register New Item"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="#0F172A"
         android:layout_marginBottom="16dp"/>
 
-    <EditText android:id="@+id/etDialogSku" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="SKU Reference Code" android:layout_marginBottom="12dp"/>
-    <EditText android:id="@+id/etDialogName" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Item Name Descriptor" android:layout_marginBottom="12dp"/>
-    <EditText android:id="@+id/etDialogCategory" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Category Classification" android:layout_marginBottom="12dp"/>
-    <EditText android:id="@+id/etDialogQuantity" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Starting Volume" android:inputType="number" android:layout_marginBottom="20dp"/>
+    <EditText
+        android:id="@+id/etDialogSku"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="SKU"
+        android:inputType="text"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/etDialogName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Item Name"
+        android:inputType="text"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/etDialogCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Category"
+        android:inputType="text"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/etDialogQuantity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Quantity"
+        android:inputType="number"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- New Price Field -->
+    <EditText
+        android:id="@+id/etDialogPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Price (₱)"
+        android:inputType="numberDecimal"
+        android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/btnDialogSave"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="#007FFF"
-        android:text="Save to Database"
-        android:textColor="#FFFFFF"/>
+        android:textColor="#FFFFFF"
+        android:text="Save Item"/>
+
 </LinearLayout>

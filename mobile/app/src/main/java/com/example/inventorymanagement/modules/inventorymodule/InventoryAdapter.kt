@@ -14,7 +14,8 @@ class InventoryAdapter(
     private var itemList: List<JSONObject>,
     private val isUserAdmin: Boolean,
     private val onPurgeClicked: (String, String) -> Unit,
-    private val onItemClicked: (JSONObject) -> Unit // Click listener for editing
+    private val onItemClicked: (JSONObject) -> Unit,
+    private val onTransactionClicked: (JSONObject) -> Unit
 ) : RecyclerView.Adapter<InventoryAdapter.InventoryViewHolder>() {
 
     private var currentThreshold: Int = 0

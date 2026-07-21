@@ -18,10 +18,10 @@ import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.inventorymanagement.R
+import com.example.inventorymanagement.activities.ManageInventoryActivity
 import com.example.inventorymanagement.activities.WarehouseActivity
 import com.example.inventorymanagement.authentication.LoginActivity
 import com.example.inventorymanagement.modules.inventorymodule.InventoryAdapter
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -39,7 +39,6 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var tvTotalSkus: TextView
     private lateinit var tvLowStock: TextView
     private lateinit var tvTotalValue: TextView
-    private lateinit var fabAddItem: FloatingActionButton
 
     private lateinit var etSearch: EditText
     private lateinit var etThreshold: EditText
@@ -61,13 +60,10 @@ class DashboardActivity : AppCompatActivity() {
 
         tvUserRoleBadge = findViewById(R.id.tvUserRoleBadge)
         tvTotalSkus = findViewById(R.id.tvTotalSkus)
-
-        // NEW CARD BINDINGS
         cardLowStock = findViewById(R.id.cardLowStock)
         tvLowStock = findViewById(R.id.tvLowStock)
         tvTotalValue = findViewById(R.id.tvTotalValue)
 
-        fabAddItem = findViewById(R.id.fabAddItem)
         etSearch = findViewById(R.id.etSearch)
         etThreshold = findViewById(R.id.etThreshold)
 
@@ -77,26 +73,23 @@ class DashboardActivity : AppCompatActivity() {
         rvInventory = findViewById(R.id.rvInventory)
         rvInventory.layoutManager = LinearLayoutManager(this)
 
-        // Initialize adapter with edit capability
+        // Initialize adapter with edit capability and Toast for transactions
         inventoryAdapter = InventoryAdapter(
             emptyList(),
             isUserAdmin = (currentUserRole == "ADMIN"),
             onPurgeClicked = { itemId, itemName -> confirmAndPurgeItem(itemId, itemName) },
-            onItemClicked = { item -> showEditAssetDialog(item) }
+            onItemClicked = { item -> showEditAssetDialog(item) },
+            onTransactionClicked = { Toast.makeText(this, "Open 'Manage Inventory' from the menu to transact.", Toast.LENGTH_SHORT).show() }
         )
         rvInventory.adapter = inventoryAdapter
 
         if (currentUserRole == "ADMIN") {
             tvUserRoleBadge.text = "ADMIN CONTROL PANEL • Welcome, $activeUsername"
             tvUserRoleBadge.setTextColor(android.graphics.Color.parseColor("#DC2626"))
-            fabAddItem.visibility = View.VISIBLE
         } else {
             tvUserRoleBadge.text = "STAFF WORKSPACE • Welcome, $activeUsername"
             tvUserRoleBadge.setTextColor(android.graphics.Color.parseColor("#475569"))
-            fabAddItem.visibility = View.GONE
         }
-
-        fabAddItem.setOnClickListener { showRegisterAssetDialog() }
 
         // Makes the Orange Card interactive
         cardLowStock.setOnClickListener {
@@ -120,6 +113,12 @@ class DashboardActivity : AppCompatActivity() {
             R.id.action_refresh -> {
                 Toast.makeText(this, "Syncing data...", Toast.LENGTH_SHORT).show()
                 fetchLiveInventoryData()
+                true
+            }
+            R.id.action_manage_inventory -> {
+                val intent = Intent(this, ManageInventoryActivity::class.java)
+                intent.putExtra("USER_ROLE", currentUserRole)
+                startActivity(intent)
                 true
             }
             R.id.action_warehouse -> {
@@ -240,66 +239,6 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
-    private fun showRegisterAssetDialog() {
-        val dialogBuilder = AlertDialog.Builder(this)
-        val inflater = this.layoutInflater
-        val dialogView = inflater.inflate(R.layout.dialog_add_item, null)
-        dialogBuilder.setView(dialogView)
-
-        val etSku = dialogView.findViewById<EditText>(R.id.etDialogSku)
-        val etName = dialogView.findViewById<EditText>(R.id.etDialogName)
-        val etCategory = dialogView.findViewById<EditText>(R.id.etDialogCategory)
-        val etQuantity = dialogView.findViewById<EditText>(R.id.etDialogQuantity)
-        val btnSave = dialogView.findViewById<Button>(R.id.btnDialogSave)
-
-        val alertDialog = dialogBuilder.create()
-
-        btnSave.setOnClickListener {
-            val skuText = etSku.text.toString().trim()
-            val nameText = etName.text.toString().trim()
-            val catText = etCategory.text.toString().trim()
-            val qtyText = etQuantity.text.toString().trim()
-
-            if (skuText.isEmpty() || nameText.isEmpty() || catText.isEmpty() || qtyText.isEmpty()) {
-                Toast.makeText(this, "Please populate all tracking properties.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            thread {
-                try {
-                    val url = URL("https://stockpulse-cbdz.onrender.com/api/items")
-                    val connection = url.openConnection() as HttpURLConnection
-                    connection.requestMethod = "POST"
-                    connection.setRequestProperty("Content-Type", "application/json")
-                    connection.doOutput = true
-
-                    val payload = JSONObject().apply {
-                        put("sku", skuText)
-                        put("name", nameText)
-                        put("category", catText)
-                        put("quantity", qtyText.toInt())
-                    }
-
-                    val os = connection.outputStream
-                    os.write(payload.toString().toByteArray())
-                    os.flush()
-                    os.close()
-
-                    if (connection.responseCode == HttpURLConnection.HTTP_CREATED || connection.responseCode == HttpURLConnection.HTTP_OK) {
-                        runOnUiThread {
-                            Toast.makeText(this@DashboardActivity, "Item successfully saved!", Toast.LENGTH_SHORT).show()
-                            alertDialog.dismiss()
-                            fetchLiveInventoryData()
-                        }
-                    }
-                } catch (e: Exception) {
-                    runOnUiThread { Toast.makeText(this@DashboardActivity, "Failed to connect to backend api.", Toast.LENGTH_SHORT).show() }
-                }
-            }
-        }
-        alertDialog.show()
-    }
-
     private fun showEditAssetDialog(item: JSONObject) {
         val dialogBuilder = AlertDialog.Builder(this)
         val inflater = this.layoutInflater
@@ -321,7 +260,6 @@ class DashboardActivity : AppCompatActivity() {
         val alertDialog = dialogBuilder.create()
 
         btnUpdate.setOnClickListener {
-
             val skuText = etSku.text.toString().trim()
             val nameText = etName.text.toString().trim()
             val catText = etCategory.text.toString().trim()
