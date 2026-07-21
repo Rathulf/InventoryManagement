@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import StockTransaction from './StockTransaction';
 
 export default function StaffDashboard({ summary, threshold, setThreshold }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -187,49 +188,6 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
           </table>
         </div>
       </div>
-
-      {/* GLOBAL MODAL OVERLAY */}
-      {showForm && activeItem && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button className="modal-close-btn" onClick={() => setShowForm(false)}>
-              &times;
-            </button>
-            
-            <div className="operations-header">
-              <h3>
-                {transactionType === 'IN' ? 'Stock In (Receiving)' : 'Stock Out (Dispatching)'}
-              </h3>
-              <p className="operations-desc">
-                Product: <strong>{activeItem.name}</strong> (Current: {activeItem.quantity})
-              </p>
-            </div>
-
-            <form className="stock-form" onSubmit={handleFormSubmit}>
-              <div className="form-group">
-                <label>Quantity:</label>
-                <input 
-                  type="number" 
-                  className="form-control" 
-                  placeholder="Enter amount" 
-                  value={transactionQty} 
-                  onChange={(e) => setTransactionQty(e.target.value)} 
-                  min="1" 
-                  required 
-                  autoFocus
-                />
-              </div>
-              
-              <button 
-                type="submit" 
-                className={`submit-btn ${transactionType === 'IN' ? 'btn-in' : 'btn-out'}`}>
-                Confirm {transactionType === 'IN' ? 'Stock In' : 'Stock Out'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-      
     </div>
   );
 }
