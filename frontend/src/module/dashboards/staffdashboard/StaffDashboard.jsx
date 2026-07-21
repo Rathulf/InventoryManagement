@@ -18,7 +18,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
         }
       })
       .catch(err => {
-        console.error("Error fetching inventory for search:", err);
+        console.error("Error fetching inventory:", err);
         setFullInventory([]); 
       });
   }, []);
@@ -34,16 +34,58 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
         (item.sku && item.sku.toLowerCase().includes(searchQuery.toLowerCase()))
       );
 
-  // Placeholder functions for your buttons - you will need to link these 
-  // to your actual API call or transaction modal!
-  const handleStockIn = (itemId) => {
-    console.log("Process Stock In for item:", itemId);
-    // Add your transaction logic here
-  };
+  // THE FIX: Directly connecting your dashboard buttons to your transaction API
+  const processTransaction = async (itemId, type) => {
+    const itemToUpdate = fullInventory.find(item => item.id === itemId);
+    if (!itemToUpdate) return;
 
-  const handleStockOut = (itemId) => {
-    console.log("Process Stock Out for item:", itemId);
-    // Add your transaction logic here
+    // Ask the staff member for the quantity
+    const inputQty = window.prompt(`How many items would you like to ${type === 'IN' ? 'ADD to' : 'REMOVE from'} ${itemToUpdate.name}?`);
+    if (!inputQty) return; 
+
+    const qtyNumber = parseInt(inputQty, 10);
+    if (isNaN(qtyNumber) || qtyNumber <= 0) {
+      alert("Please enter a valid positive number.");
+      return;
+    }
+
+    // Prevent negative stock
+    if (type === 'OUT' && qtyNumber > itemToUpdate.quantity) {
+      alert("Transaction failed: Insufficient stock!");
+      return;
+    }
+
+    try {
+      // Sending the exact payload your Spring Boot transaction endpoint requires
+      const response = await fetch('https://stockpulse-cbdz.onrender.com/api/transactions/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: itemId,
+          type: type,
+          quantity: qtyNumber,
+          performedBy: 'Staff Member'
+        })
+      });
+
+      if (response.ok) {
+        // Instantly update the UI without needing to refresh the page
+        setFullInventory(prev => prev.map(item => {
+          if (item.id === itemId) {
+            return { 
+              ...item, 
+              quantity: type === 'IN' ? item.quantity + qtyNumber : item.quantity - qtyNumber 
+            };
+          }
+          return item;
+        }));
+      } else {
+        alert(`Transaction failed. Server Error: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      alert("Could not reach the database.");
+    }
   };
 
   return (
@@ -95,14 +137,12 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
             <tr>
               <th>Product</th>
               <th className="center-cell">Stock Level</th>
-              {/* RESTORED: The Actions column header */}
               <th className="center-cell">Actions</th> 
             </tr>
           </thead>
           <tbody>
             {displayedItems.length === 0 ? (
               <tr>
-                {/* Updated colSpan to 3 to match the new column count */}
                 <td colSpan="3" className="empty-table-state"> 
                   {searchQuery.trim() === '' 
                     ? `No items with stock below ${threshold}. Everything is looking good!` 
@@ -118,18 +158,18 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
                   <td className={`center-cell ${item.quantity < threshold ? 'danger-stock' : 'normal-stock'}`} style={{ display: 'table-cell' }}>
                     {item.quantity}
                   </td>
-                  {/* RESTORED: The Action buttons inside a new table cell */}
+                  {/* Action buttons connected to your transaction endpoint */}
                   <td className="center-cell" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                     <button 
                         className="btn-stock-in" 
                         style={{ backgroundColor: '#22c55e', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}
-                        onClick={() => handleStockIn(item.id)}>
+                        onClick={() => processTransaction(item.id, 'IN')}>
                         Stock In
                     </button>
                     <button 
                         className="btn-stock-out" 
                         style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}
-                        onClick={() => handleStockOut(item.id)}>
+                        onClick={() => processTransaction(item.id, 'OUT')}>
                         Stock Out
                     </button>
                   </td>
