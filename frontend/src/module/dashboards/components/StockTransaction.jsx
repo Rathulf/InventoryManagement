@@ -11,25 +11,26 @@ export default function StockTransaction({ initialType = 'IN', isLocked = false 
     performedBy: 'Staff Member'
   });
 
-useEffect(() => {
-  // Updated to point to your live Render backend
-  fetch('https://stockpulse-cbdz.onrender.com/api/items')
-    .then(res => {
-      if (!res.ok) throw new Error("Failed to fetch items");
-      return res.json();
-    })
-    .then(data => {
-      if (Array.isArray(data)) {
-        setFullInventory(data);
-      } else {
-        setFullInventory([]);
-      }
-    })
-    .catch(err => {
-      console.error("Error fetching inventory for search:", err);
-      setFullInventory([]); 
-    });
-}, []);
+  useEffect(() => {
+    // Updated to point to your live Render backend
+    fetch('https://stockpulse-cbdz.onrender.com/api/items')
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch items");
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+          // FIX: Changed setFullInventory to setInventory to match your state hook
+          setInventory(data);
+        } else {
+          setInventory([]);
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching inventory for search:", err);
+        setInventory([]); 
+      });
+  }, []);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
