@@ -4,13 +4,13 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [fullInventory, setFullInventory] = useState([]);
   
-  // State variables for the modal overlay form
+  // Modal State Management
   const [showForm, setShowForm] = useState(false);
   const [activeItem, setActiveItem] = useState(null);
   const [transactionType, setTransactionType] = useState('IN');
   const [transactionQty, setTransactionQty] = useState('');
   const [message, setMessage] = useState(null);
-
+ 
   useEffect(() => {
     fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
@@ -26,7 +26,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
       })
       .catch(err => {
         console.error("Error fetching inventory for search:", err);
-        setFullInventory([]); 
+        setFullInventory([]);
       });
   }, []);
 
@@ -34,10 +34,10 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
   const lowStock = summary?.lowStock || 0;
   const lowStockProducts = summary?.lowStockProducts || [];
 
-  const displayedItems = searchQuery.trim() === '' 
-    ? lowStockProducts 
-    : fullInventory.filter(item => 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const displayedItems = searchQuery.trim() === ''
+    ? lowStockProducts
+    : fullInventory.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.sku && item.sku.toLowerCase().includes(searchQuery.toLowerCase()))
       );
 
@@ -77,7 +77,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
 
       if (!response.ok) throw new Error("Transaction Failed");
 
-      // Instantly update local inventory state
+      // Instantly update the local state for a smooth UI refresh
       setFullInventory(prev => prev.map(item => {
         if (item.id === activeItem.id) {
           return { 
@@ -99,8 +99,8 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
   };
 
   return (
-    <div className="inventory-section mt-0" style={{ position: 'relative', border: 'none', padding: 0, boxShadow: 'none', backgroundColor: 'transparent' }}>
-      
+    <div className="inventory-section mt-0">
+     
       {/* METRICS CARDS */}
       <div className="metrics-layout-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
         <div className="metric-display-card item-count">
@@ -114,17 +114,17 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
       </div>
 
       <div className="inventory-section">
-        
+       
         {/* DYNAMIC CONTROLS BAR: Threshold Setting + Search Bar */}
         <div className="search-filter-controls-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          
+         
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <label style={{ fontSize: '14px', fontWeight: '600', color: '#475569' }}>
               Low Stock Threshold:
             </label>
-            <input 
-              type="number" 
-              className="search-input-box" 
+            <input
+              type="number"
+              className="search-input-box"
               value={threshold}
               onChange={(e) => setThreshold(Math.max(1, Number(e.target.value)))}
               style={{ width: '80px', padding: '8px 12px', margin: 0 }}
@@ -132,10 +132,10 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
             />
           </div>
 
-          <input 
-            type="text" 
-            className="search-input-box" 
-            placeholder="🔍 Search by product name or SKU..." 
+          <input
+            type="text"
+            className="search-input-box"
+            placeholder="🔍 Search by product name or SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ maxWidth: '300px', margin: 0 }}
@@ -170,16 +170,16 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
                       {item.quantity}
                     </td>
                     <td className="center-cell">
-                      <div className="action-buttons-container" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <div className="action-buttons-container" style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                         <button 
                           className="btn-action btn-stock-in" 
                           onClick={() => openTransactionForm(item, 'IN')}>
-                          Stock In
+                          📥 Stock In
                         </button>
                         <button 
                           className="btn-action btn-stock-out" 
                           onClick={() => openTransactionForm(item, 'OUT')}>
-                          Stock Out
+                          📤 Stock Out
                         </button>
                       </div>
                     </td>
@@ -190,8 +190,8 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
           </table>
         </div>
       </div>
-      
-      {/* POPUP MODAL OVERLAY USING GLOBAL CSS CLASSES */}
+     
+      {/* POPUP MODAL OVERLAY */}
       {showForm && activeItem && (
         <div className="modal-overlay">
           <div className="modal-content">
