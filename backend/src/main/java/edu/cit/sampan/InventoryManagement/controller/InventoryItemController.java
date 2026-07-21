@@ -25,6 +25,16 @@ public class InventoryItemController {
         return ResponseEntity.ok(inventoryItemService.addItem(item));
     }
 
+    // NEW: The missing PUT method to handle updates from Android
+    @PutMapping("/{id}")
+    public ResponseEntity<InventoryItem> updateItem(@PathVariable Long id, @RequestBody InventoryItem itemDetails) {
+        InventoryItem updatedItem = inventoryItemService.updateItem(id, itemDetails);
+        if (updatedItem != null) {
+            return ResponseEntity.ok(updatedItem);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
         if (inventoryItemService.deleteItem(id)) {
