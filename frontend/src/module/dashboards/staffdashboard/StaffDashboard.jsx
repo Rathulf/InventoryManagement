@@ -96,10 +96,10 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
   };
 
   return (
-    <div className="dashboard-wrapper" style={{ display: 'block' }}>
+    <div style={{ position: 'relative', width: '100%' }}>
       
       {/* METRICS CARDS */}
-      <div className="metrics-layout-grid">
+      <div className="metrics-layout-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
         <div className="metric-display-card item-count">
           <h4>Total Products</h4>
           <p className="value">{totalProducts}</p>
