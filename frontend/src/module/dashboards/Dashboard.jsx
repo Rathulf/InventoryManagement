@@ -17,14 +17,19 @@ export default function Dashboard() {
   const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || 'Staff');
   const [userName, setUserName] = useState(localStorage.getItem('userName') || 'User');
 
-  const [lowStockThreshold, setLowStockThreshold] = useState(200); //default threshold value
+  const [lowStockThreshold, setLowStockThreshold] = useState(200);
+
+  // Extracted fetch logic so it can be called dynamically
+  const fetchSummaryData = () => {
+    fetch(`https://stockpulse-cbdz.onrender.com/api/dashboard/summary?threshold=${lowStockThreshold}`)
+      .then(res => res.json())
+      .then(data => setSummary(data))
+      .catch(err => console.error("Error fetching data:", err));
+  };
 
   useEffect(() => {
     if (view === 'Analytics') {
-      fetch(`https://stockpulse-cbdz.onrender.com/api/dashboard/summary?threshold=${lowStockThreshold}`)
-        .then(res => res.json())
-        .then(data => setSummary(data))
-        .catch(err => console.error("Error fetching data:", err));
+      fetchSummaryData();
     }
   }, [view, lowStockThreshold]);
 
@@ -42,7 +47,12 @@ export default function Dashboard() {
           <AdminDashboard summary={summary} threshold={lowStockThreshold} setThreshold={setLowStockThreshold} />
         )}
         {view === 'Analytics' && userRole === 'Staff' && (
-          <StaffDashboard summary={summary} threshold={lowStockThreshold} setThreshold={setLowStockThreshold} />
+          <StaffDashboard 
+            summary={summary} 
+            threshold={lowStockThreshold} 
+            setThreshold={setLowStockThreshold} 
+            onTransactionComplete={fetchSummaryData} 
+          />
         )}
         {view === 'ViewStock' && <ViewStock threshold={lowStockThreshold} />}
         {view === 'Alerts' && <Alerts threshold={lowStockThreshold} />} 
