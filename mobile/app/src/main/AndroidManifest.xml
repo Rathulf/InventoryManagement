@@ -30,6 +30,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".activities.StaffDashboardActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".activities.WarehouseActivity"
             android:exported="false" />
 

@@ -73,13 +73,33 @@ class DashboardActivity : AppCompatActivity() {
         rvInventory = findViewById(R.id.rvInventory)
         rvInventory.layoutManager = LinearLayoutManager(this)
 
+        // --- ROLE RESTRICTION ENFORCEMENT ---
+        if (currentUserRole.equals("STAFF", ignoreCase = true)) {
+            // Hide the total inventory value card container completely for staff
+            tvTotalValue.parent?.let { parent ->
+                if (parent is View) {
+                    parent.visibility = View.GONE
+                }
+            }
+        }
+        // ------------------------------------
+
         // Initialize adapter with edit capability and Toast for transactions
         inventoryAdapter = InventoryAdapter(
             emptyList(),
-            isUserAdmin = (currentUserRole == "ADMIN"),
+            isUserAdmin = (currentUserRole.equals("ADMIN", ignoreCase = true)),
             onPurgeClicked = { itemId, itemName -> confirmAndPurgeItem(itemId, itemName) },
-            onItemClicked = { item -> showEditAssetDialog(item) },
-            onTransactionClicked = { Toast.makeText(this, "Open 'Manage Inventory' from the menu to transact.", Toast.LENGTH_SHORT).show() }
+            onItemClicked = { item ->
+                if (currentUserRole.equals("ADMIN", ignoreCase = true)) {
+                    showEditAssetDialog(item)
+                } else {
+                    Toast.makeText(this, "Tap the transaction button to process Stock In/Out.", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onTransactionClicked = { item ->
+                // Opens the stock movement processor for both Admin and Staff
+                showStockTransactionDialog(item)
+            }
         )
         rvInventory.adapter = inventoryAdapter
 
@@ -330,5 +350,102 @@ class DashboardActivity : AppCompatActivity() {
                 }
             }
             .show()
+    }
+
+    private fun showStockTransactionDialog(item: JSONObject) {
+        val itemId = item.optString("id")
+        val itemName = item.optString("name")
+        val currentQty = item.optInt("quantity", 0)
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_item, null)
+        val etSku = dialogView.findViewById<EditText>(R.id.etEditSku)
+        val etName = dialogView.findViewById<EditText>(R.id.etEditName)
+        val etCategory = dialogView.findViewById<EditText>(R.id.etEditCategory)
+        val etQuantity = dialogView.findViewById<EditText>(R.id.etEditQuantity)
+        val btnUpdate = dialogView.findViewById<Button>(R.id.btnDialogUpdate)
+
+        // Lock item metadata fields so staff only deal with quantities
+        etSku.setText(item.optString("sku"))
+        etSku.isEnabled = false
+        etName.setText(itemName)
+        etName.isEnabled = false
+        etCategory.setText(item.optString("category"))
+        etCategory.isEnabled = false
+
+        etQuantity.hint = "Enter quantity to add/subtract"
+        etQuantity.setText("")
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Process Stock: $itemName")
+            .setView(dialogView)
+            .setNegativeButton("Cancel", null)
+            .create()
+
+        // Modify update button text to offer choices or clear intent
+        btnUpdate.text = "Confirm Movement"
+
+        btnUpdate.setOnClickListener {
+            val inputVal = etQuantity.text.toString().trim().toIntOrNull()
+            if (inputVal == null || inputVal <= 0) {
+                Toast.makeText(this, "Please enter a valid amount.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Prompt whether this is Stock In or Stock Out
+            AlertDialog.Builder(this)
+                .setTitle("Select Transaction Type")
+                .setMessage("Are you adding stock (IN) or dispatching stock (OUT)?")
+                .setPositiveButton("Stock In (+)") { _, _ ->
+                    val newQty = currentQty + inputVal
+                    executeStockUpdate(itemId, item, newQty, dialog)
+                }
+                .setNegativeButton("Stock Out (-)") { _, _ ->
+                    val newQty = currentQty - inputVal
+                    if (newQty < 0) {
+                        Toast.makeText(this, "Error: Stock cannot drop below zero.", Toast.LENGTH_SHORT).show()
+                        return@setNegativeButton
+                    }
+                    executeStockUpdate(itemId, item, newQty, dialog)
+                }
+                .show()
+        }
+
+        dialog.show()
+    }
+
+    private fun executeStockUpdate(itemId: String, originalItem: JSONObject, updatedQuantity: Int, dialog: AlertDialog) {
+        thread {
+            try {
+                val url = URL("https://stockpulse-cbdz.onrender.com/api/items/$itemId")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "PUT"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.doOutput = true
+
+                val payload = JSONObject().apply {
+                    put("sku", originalItem.optString("sku"))
+                    put("name", originalItem.optString("name"))
+                    put("category", originalItem.optString("category"))
+                    put("quantity", updatedQuantity)
+                }
+
+                val os = connection.outputStream
+                os.write(payload.toString().toByteArray())
+                os.flush()
+                os.close()
+
+                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                    runOnUiThread {
+                        Toast.makeText(this@DashboardActivity, "Stock successfully processed!", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                        fetchLiveInventoryData()
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this@DashboardActivity, "Failed to process stock movement.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 }

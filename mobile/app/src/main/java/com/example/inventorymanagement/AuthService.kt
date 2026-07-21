@@ -5,8 +5,10 @@ import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import java.util.concurrent.TimeUnit
 
 // Data contracts matching your Spring Boot backend controllers
@@ -22,6 +24,20 @@ data class InventoryItem(
     val category: String?
 )
 
+// Data class matching your employee records
+data class Employee(
+    val id: Long,
+    val name: String,
+    val email: String,
+    val role: String
+)
+
+data class TransactionRequest(
+    val itemId: Long,
+    val type: String, // "IN" or "OUT"
+    val quantity: Int,
+    val performedBy: String
+)
 interface AuthApi {
     @POST("api/employees/register")
     fun registerUser(@Body request: RegisterRequest): Call<Void>
@@ -31,6 +47,19 @@ interface AuthApi {
 
     @GET("api/items")
     fun getInventory(): Call<List<InventoryItem>>
+
+    // --- Manage Employees Endpoints ---
+    @GET("api/employees")
+    fun getEmployees(): Call<List<Employee>>
+
+    @POST("api/employees")
+    fun addEmployee(@Body employee: Employee): Call<Employee>
+
+    @DELETE("api/employees/{id}")
+    fun deleteEmployee(@Path("id") id: Long): Call<Void>
+
+    @POST("api/transactions/process")
+    fun processTransaction(@Body request: TransactionRequest): Call<Void>
 }
 
 object RetrofitClient {
