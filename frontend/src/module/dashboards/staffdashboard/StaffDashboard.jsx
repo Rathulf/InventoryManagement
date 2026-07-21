@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function StaffDashboard({ summary, threshold, setThreshold }) {
+export default function StaffDashboard({ summary, threshold, setThreshold, onTransactionComplete }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [fullInventory, setFullInventory] = useState([]);
   
@@ -77,18 +77,13 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
 
       if (!response.ok) throw new Error("Transaction Failed");
 
-      // Instantly update the local state for a smooth UI refresh
-      setFullInventory(prev => prev.map(item => {
-        if (item.id === activeItem.id) {
-          return { 
-            ...item, 
-            quantity: transactionType === 'IN' ? item.quantity + qtyNumber : item.quantity - qtyNumber 
-          };
-        }
-        return item;
-      }));
-
       setMessage({ type: 'success', text: 'Processed successfully!' });
+      
+      // Trigger the parent dashboard to fetch updated summary counts immediately
+      if (onTransactionComplete) {
+        onTransactionComplete();
+      }
+
       setTimeout(() => {
         setShowForm(false);
       }, 1000);
