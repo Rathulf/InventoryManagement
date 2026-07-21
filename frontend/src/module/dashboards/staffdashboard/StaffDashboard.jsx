@@ -11,7 +11,6 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
   const [transactionQty, setTransactionQty] = useState('');
   const [message, setMessage] = useState(null);
  
-  // Reusable inventory fetch function
   const fetchInventory = () => {
     fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
@@ -42,8 +41,8 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
         (item.sku && item.sku.toLowerCase().includes(searchQuery.toLowerCase()))
       );
 
-  const openTransactionForm = (item, type) => {
-    setSelectedItemId(item ? item.id.toString() : '');
+  const openTransactionForm = (type) => {
+    setSelectedItemId('');
     setTransactionType(type);
     setTransactionQty('');
     setMessage(null);
@@ -86,7 +85,6 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
 
       setMessage({ type: 'success', text: 'Processed successfully!' });
       
-      // Instantly trigger re-fetch for both parent summary and local inventory
       if (onTransactionComplete) {
         await onTransactionComplete();
       }
@@ -118,6 +116,27 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
         </div>
       </div>
 
+      {/* INDEPENDENT OPERATIONS ACTION BUTTONS BAR */}
+      <div className="inventory-section" style={{ padding: '24px', marginBottom: '24px' }}>
+        <div className="operations-header" style={{ marginBottom: '16px' }}>
+          <h3 style={{ margin: '0 0 4px 0' }}>Staff Operations</h3>
+          <p className="operations-desc" style={{ margin: 0 }}>Record incoming deliveries or outgoing warehouse stock.</p>
+        </div>
+        <div className="action-buttons-container">
+          <button 
+            className="btn-action btn-stock-in" 
+            onClick={() => openTransactionForm('IN')}>
+            📥 Stock In
+          </button>
+          <button 
+            className="btn-action btn-stock-out" 
+            onClick={() => openTransactionForm('OUT')}>
+            📤 Stock Out
+          </button>
+        </div>
+      </div>
+
+      {/* MAIN INVENTORY SECTION */}
       <div className="inventory-section">
        
         {/* DYNAMIC CONTROLS BAR: Threshold Setting + Search Bar */}
@@ -153,13 +172,12 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
               <tr>
                 <th>Product</th>
                 <th className="center-cell">Stock Level</th>
-                <th className="center-cell">Actions</th>
               </tr>
             </thead>
             <tbody>
               {displayedItems.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="empty-table-state">
+                  <td colSpan="2" className="empty-table-state">
                     {searchQuery.trim() === '' 
                       ? `No items with stock below ${threshold}. Everything is looking good!` 
                       : `No items found matching "${searchQuery}"`}
@@ -173,20 +191,6 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
                     </td>
                     <td className={`center-cell ${item.quantity < threshold ? 'danger-stock' : 'normal-stock'}`} style={{ display: 'table-cell' }}>
                       {item.quantity}
-                    </td>
-                    <td className="center-cell">
-                      <div className="action-buttons-container" style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                        <button 
-                          className="btn-action btn-stock-in" 
-                          onClick={() => openTransactionForm(item, 'IN')}>
-                          📥 Stock In
-                        </button>
-                        <button 
-                          className="btn-action btn-stock-out" 
-                          onClick={() => openTransactionForm(item, 'OUT')}>
-                          📤 Stock Out
-                        </button>
-                      </div>
                     </td>
                   </tr>
                 ))
