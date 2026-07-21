@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#FFFFFF">
+
+    <TextView
+        android:id="@+id/tvTransactionTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Manage Stock Quantity"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#0F172A"
+        android:layout_marginBottom="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/rgTransactionType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <RadioButton
+            android:id="@+id/rbStockIn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stock In (Purchase)"
+            android:textColor="#475569"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/rbStockOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stock Out (Sale)"
+            android:textColor="#475569"
+            android:layout_marginStart="16dp"/>
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/etTransactionQty"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:hint="Quantity"
+        android:inputType="number"
+        android:background="#F8FAFC"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btnProcessTransaction"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="Process Transaction"
+        android:backgroundTint="#007FFF"
+        android:textColor="#FFFFFF"/>
+</LinearLayout>

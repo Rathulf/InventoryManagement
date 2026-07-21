@@ -6,24 +6,60 @@
     android:padding="24dp">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Update Asset"
+        android:text="Edit Asset Details"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="#0F172A"
         android:layout_marginBottom="16dp"/>
 
-    <EditText android:id="@+id/etEditSku" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="SKU" android:layout_marginBottom="8dp" android:inputType="text"/>
-    <EditText android:id="@+id/etEditName" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Item Name" android:layout_marginBottom="8dp" android:inputType="text"/>
-    <EditText android:id="@+id/etEditCategory" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Category" android:layout_marginBottom="8dp" android:inputType="text"/>
-    <EditText android:id="@+id/etEditQuantity" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Quantity" android:layout_marginBottom="16dp" android:inputType="number"/>
+    <EditText
+        android:id="@+id/etEditSku"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="SKU"
+        android:inputType="text"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/etEditName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Item Name"
+        android:inputType="text"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/etEditCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Category"
+        android:inputType="text"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/etEditQuantity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Quantity"
+        android:inputType="number"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- New Price Field -->
+    <EditText
+        android:id="@+id/etEditPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Price (₱)"
+        android:inputType="numberDecimal"
+        android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/btnDialogUpdate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="UPDATE ITEM"
         android:backgroundTint="#007FFF"
-        android:textColor="#FFFFFF"/>
+        android:textColor="#FFFFFF"
+        android:text="Update Item"/>
+
 </LinearLayout>

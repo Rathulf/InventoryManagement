@@ -3,7 +3,6 @@ package com.example.inventorymanagement.authentication
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.inventorymanagement.AuthResponse
@@ -25,7 +24,6 @@ class LoginActivity : AppCompatActivity() {
         val etEmail = findViewById<TextInputEditText>(R.id.etLoginEmail)
         val etPassword = findViewById<TextInputEditText>(R.id.etLoginPassword)
         val btnLogin = findViewById<Button>(R.id.btnLoginSubmit)
-        val tvToRegister = findViewById<TextView>(R.id.tvToRegister)
 
         val successMessage = intent.getStringExtra("REG_SUCCESS_MSG")
         if (!successMessage.isNullOrEmpty()) {

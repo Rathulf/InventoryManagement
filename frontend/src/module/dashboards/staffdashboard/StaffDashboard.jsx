@@ -34,6 +34,18 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
         (item.sku && item.sku.toLowerCase().includes(searchQuery.toLowerCase()))
       );
 
+  // Placeholder functions for your buttons - you will need to link these 
+  // to your actual API call or transaction modal!
+  const handleStockIn = (itemId) => {
+    console.log("Process Stock In for item:", itemId);
+    // Add your transaction logic here
+  };
+
+  const handleStockOut = (itemId) => {
+    console.log("Process Stock Out for item:", itemId);
+    // Add your transaction logic here
+  };
+
   return (
     <div className="inventory-section mt-0">
       
@@ -83,12 +95,15 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
             <tr>
               <th>Product</th>
               <th className="center-cell">Stock Level</th>
+              {/* RESTORED: The Actions column header */}
+              <th className="center-cell">Actions</th> 
             </tr>
           </thead>
           <tbody>
             {displayedItems.length === 0 ? (
               <tr>
-                <td colSpan="2" className="empty-table-state">
+                {/* Updated colSpan to 3 to match the new column count */}
+                <td colSpan="3" className="empty-table-state"> 
                   {searchQuery.trim() === '' 
                     ? `No items with stock below ${threshold}. Everything is looking good!` 
                     : `No items found matching "${searchQuery}"`}
@@ -102,6 +117,21 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
                   </td>
                   <td className={`center-cell ${item.quantity < threshold ? 'danger-stock' : 'normal-stock'}`} style={{ display: 'table-cell' }}>
                     {item.quantity}
+                  </td>
+                  {/* RESTORED: The Action buttons inside a new table cell */}
+                  <td className="center-cell" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    <button 
+                        className="btn-stock-in" 
+                        style={{ backgroundColor: '#22c55e', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}
+                        onClick={() => handleStockIn(item.id)}>
+                        Stock In
+                    </button>
+                    <button 
+                        className="btn-stock-out" 
+                        style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}
+                        onClick={() => handleStockOut(item.id)}>
+                        Stock Out
+                    </button>
                   </td>
                 </tr>
               ))
