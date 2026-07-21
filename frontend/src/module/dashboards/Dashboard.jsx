@@ -19,11 +19,14 @@ export default function Dashboard() {
 
   const [lowStockThreshold, setLowStockThreshold] = useState(200);
 
-  // Extracted fetch logic so it can be called dynamically
+  // Reusable fetch function that returns a Promise
   const fetchSummaryData = () => {
-    fetch(`https://stockpulse-cbdz.onrender.com/api/dashboard/summary?threshold=${lowStockThreshold}`)
+    return fetch(`https://stockpulse-cbdz.onrender.com/api/dashboard/summary?threshold=${lowStockThreshold}`)
       .then(res => res.json())
-      .then(data => setSummary(data))
+      .then(data => {
+        setSummary(data);
+        return data;
+      })
       .catch(err => console.error("Error fetching data:", err));
   };
 

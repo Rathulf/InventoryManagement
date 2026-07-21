@@ -6,28 +6,29 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
   
   // Modal State Management
   const [showForm, setShowForm] = useState(false);
-  const [activeItem, setActiveItem] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState('');
   const [transactionType, setTransactionType] = useState('IN');
   const [transactionQty, setTransactionQty] = useState('');
   const [message, setMessage] = useState(null);
  
-  useEffect(() => {
+  // Reusable inventory fetch function
+  const fetchInventory = () => {
     fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch items");
         return res.json();
       })
       .then(data => {
-        if (Array.isArray(data)) {
-          setFullInventory(data);
-        } else {
-          setFullInventory([]);
-        }
+        setFullInventory(Array.isArray(data) ? data : []);
       })
       .catch(err => {
         console.error("Error fetching inventory for search:", err);
         setFullInventory([]);
       });
+  };
+
+  useEffect(() => {
+    fetchInventory();
   }, []);
 
   const totalProducts = summary?.totalProducts || 0;
@@ -42,7 +43,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
       );
 
   const openTransactionForm = (item, type) => {
-    setActiveItem(item);
+    setSelectedItemId(item ? item.id.toString() : '');
     setTransactionType(type);
     setTransactionQty('');
     setMessage(null);
@@ -52,13 +53,19 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     
+    if (!selectedItemId) {
+      setMessage({ type: 'error', text: 'Please select a product.' });
+      return;
+    }
+
     const qtyNumber = parseInt(transactionQty, 10);
     if (isNaN(qtyNumber) || qtyNumber <= 0) {
       setMessage({ type: 'error', text: 'Please enter a valid positive number.' });
       return;
     }
 
-    if (transactionType === 'OUT' && qtyNumber > activeItem.quantity) {
+    const currentItem = fullInventory.find(i => i.id.toString() === selectedItemId.toString());
+    if (transactionType === 'OUT' && currentItem && qtyNumber > currentItem.quantity) {
       setMessage({ type: 'error', text: 'Transaction failed: Insufficient stock!' });
       return;
     }
@@ -68,7 +75,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          itemId: activeItem.id,
+          itemId: parseInt(selectedItemId, 10),
           type: transactionType,
           quantity: qtyNumber,
           performedBy: 'Staff Member'
@@ -79,10 +86,11 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
 
       setMessage({ type: 'success', text: 'Processed successfully!' });
       
-      // Trigger the parent dashboard to fetch updated summary counts immediately
+      // Instantly trigger re-fetch for both parent summary and local inventory
       if (onTransactionComplete) {
-        onTransactionComplete();
+        await onTransactionComplete();
       }
+      fetchInventory();
 
       setTimeout(() => {
         setShowForm(false);
@@ -92,6 +100,8 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
       setMessage({ type: 'error', text: err.message });
     }
   };
+
+  const activeItem = fullInventory.find(i => i.id.toString() === selectedItemId.toString());
 
   return (
     <div className="inventory-section mt-0">
@@ -187,7 +197,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
       </div>
      
       {/* POPUP MODAL OVERLAY */}
-      {showForm && activeItem && (
+      {showForm && (
         <div className="modal-overlay">
           <div className="modal-content">
             <button className="modal-close-btn" onClick={() => setShowForm(false)}>
@@ -199,7 +209,11 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
                 {transactionType === 'IN' ? 'Stock In (Receiving)' : 'Stock Out (Dispatching)'}
               </h3>
               <p className="operations-desc">
-                Product: <strong>{activeItem.name}</strong> (Current: {activeItem.quantity})
+                {activeItem ? (
+                  <>Selected: <strong>{activeItem.name}</strong> (Current Stock: {activeItem.quantity})</>
+                ) : (
+                  'Choose an item to process stock movement.'
+                )}
               </p>
             </div>
 
@@ -210,6 +224,26 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
             )}
 
             <form className="stock-form" onSubmit={handleFormSubmit}>
+              
+              {/* SELECT PRODUCT DROPDOWN */}
+              <div className="form-group">
+                <label>Select Product:</label>
+                <select 
+                  name="itemId" 
+                  className="form-control" 
+                  value={selectedItemId} 
+                  onChange={(e) => setSelectedItemId(e.target.value)} 
+                  required
+                >
+                  <option value="" disabled>-- Choose an Item --</option>
+                  {fullInventory.map(item => (
+                    <option key={item.id} value={item.id}>
+                      {item.name} (SKU: {item.sku} - Stock: {item.quantity})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="form-group">
                 <label>Quantity:</label>
                 <input 
@@ -221,7 +255,6 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
                   onChange={(e) => setTransactionQty(e.target.value)} 
                   min="1" 
                   required 
-                  autoFocus 
                 />
               </div>
               
