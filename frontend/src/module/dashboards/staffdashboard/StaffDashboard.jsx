@@ -4,11 +4,12 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [fullInventory, setFullInventory] = useState([]);
   
-  // State variables for the popup modal form
+  // State variables for the modal overlay form
   const [showForm, setShowForm] = useState(false);
   const [activeItem, setActiveItem] = useState(null);
   const [transactionType, setTransactionType] = useState('IN');
   const [transactionQty, setTransactionQty] = useState('');
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     fetch('https://stockpulse-cbdz.onrender.com/api/items')
@@ -24,7 +25,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
         }
       })
       .catch(err => {
-        console.error("Error fetching inventory:", err);
+        console.error("Error fetching inventory for search:", err);
         setFullInventory([]); 
       });
   }, []);
@@ -44,6 +45,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
     setActiveItem(item);
     setTransactionType(type);
     setTransactionQty('');
+    setMessage(null);
     setShowForm(true);
   };
 
@@ -51,14 +53,13 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
     e.preventDefault();
     
     const qtyNumber = parseInt(transactionQty, 10);
-    
     if (isNaN(qtyNumber) || qtyNumber <= 0) {
-      alert("Please enter a valid positive number.");
+      setMessage({ type: 'error', text: 'Please enter a valid positive number.' });
       return;
     }
 
     if (transactionType === 'OUT' && qtyNumber > activeItem.quantity) {
-      alert("Transaction failed: Insufficient stock!");
+      setMessage({ type: 'error', text: 'Transaction failed: Insufficient stock!' });
       return;
     }
 
@@ -74,24 +75,26 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
         })
       });
 
-      if (response.ok) {
-        setFullInventory(prev => prev.map(item => {
-          if (item.id === activeItem.id) {
-            return { 
-              ...item, 
-              quantity: transactionType === 'IN' ? item.quantity + qtyNumber : item.quantity - qtyNumber 
-            };
-          }
-          return item;
-        }));
-        
+      if (!response.ok) throw new Error("Transaction Failed");
+
+      // Instantly update local inventory state
+      setFullInventory(prev => prev.map(item => {
+        if (item.id === activeItem.id) {
+          return { 
+            ...item, 
+            quantity: transactionType === 'IN' ? item.quantity + qtyNumber : item.quantity - qtyNumber 
+          };
+        }
+        return item;
+      }));
+
+      setMessage({ type: 'success', text: 'Processed successfully!' });
+      setTimeout(() => {
         setShowForm(false);
-      } else {
-        alert(`Transaction failed. Server Error: ${response.status}`);
-      }
-    } catch (error) {
-      console.error("Network error:", error);
-      alert("Could not reach the database.");
+      }, 1000);
+
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message });
     }
   };
 
@@ -112,7 +115,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
 
       <div className="inventory-section">
         
-        {/* DYNAMIC CONTROLS BAR */}
+        {/* DYNAMIC CONTROLS BAR: Threshold Setting + Search Bar */}
         <div className="search-filter-controls-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -139,20 +142,19 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
           />
         </div>
 
-        {/* BULLETPROOF TABLE WRAPPER */}
         <div className="table-responsive-container">
           <table className="ledger-table-view">
             <thead>
               <tr>
                 <th>Product</th>
                 <th className="center-cell">Stock Level</th>
-                <th className="center-cell">Actions</th> 
+                <th className="center-cell">Actions</th>
               </tr>
             </thead>
             <tbody>
               {displayedItems.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="empty-table-state"> 
+                  <td colSpan="3" className="empty-table-state">
                     {searchQuery.trim() === '' 
                       ? `No items with stock below ${threshold}. Everything is looking good!` 
                       : `No items found matching "${searchQuery}"`}
@@ -162,22 +164,22 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
                 displayedItems.map((item) => (
                   <tr key={item.id}>
                     <td>
-                      <strong>{item.name}</strong> <span className="sku-cell">({item.sku})</span>
+                      <strong>{item.name}</strong> <span style={{ color: '#64748b', fontSize: '12px' }}>({item.sku})</span>
                     </td>
-                    <td className={`center-cell ${item.quantity < threshold ? 'danger-stock' : 'normal-stock'}`}>
+                    <td className={`center-cell ${item.quantity < threshold ? 'danger-stock' : 'normal-stock'}`} style={{ display: 'table-cell' }}>
                       {item.quantity}
                     </td>
                     <td className="center-cell">
-                      <div className="action-buttons-container" style={{ justifyContent: 'center' }}>
+                      <div className="action-buttons-container" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                         <button 
-                            className="btn-action btn-stock-in" 
-                            onClick={() => openTransactionForm(item, 'IN')}>
-                            Stock In
+                          className="btn-action btn-stock-in" 
+                          onClick={() => openTransactionForm(item, 'IN')}>
+                          Stock In
                         </button>
                         <button 
-                            className="btn-action btn-stock-out" 
-                            onClick={() => openTransactionForm(item, 'OUT')}>
-                            Stock Out
+                          className="btn-action btn-stock-out" 
+                          onClick={() => openTransactionForm(item, 'OUT')}>
+                          Stock Out
                         </button>
                       </div>
                     </td>
@@ -188,8 +190,8 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
           </table>
         </div>
       </div>
-
-      {/* POPUP MODAL OVERLAY */}
+      
+      {/* POPUP MODAL OVERLAY USING GLOBAL CSS CLASSES */}
       {showForm && activeItem && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -206,18 +208,25 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
               </p>
             </div>
 
+            {message && (
+              <div className={`message-box ${message.type === 'success' ? 'msg-success' : 'msg-error'}`}>
+                {message.text}
+              </div>
+            )}
+
             <form className="stock-form" onSubmit={handleFormSubmit}>
               <div className="form-group">
                 <label>Quantity:</label>
                 <input 
                   type="number" 
+                  name="quantity" 
                   className="form-control" 
                   placeholder="Enter amount" 
                   value={transactionQty} 
                   onChange={(e) => setTransactionQty(e.target.value)} 
                   min="1" 
                   required 
-                  autoFocus
+                  autoFocus 
                 />
               </div>
               
@@ -230,7 +239,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
           </div>
         </div>
       )}
-      
+
     </div>
   );
 }
