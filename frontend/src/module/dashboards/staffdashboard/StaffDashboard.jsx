@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import StockTransaction from './StockTransaction';
+import StockTransaction from "./components/StockTransaction";
 
 export default function StaffDashboard({ summary, threshold, setThreshold }) {
   const [searchQuery, setSearchQuery] = useState('');
