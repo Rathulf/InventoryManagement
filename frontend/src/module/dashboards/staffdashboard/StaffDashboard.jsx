@@ -116,19 +116,21 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
         </div>
       </div>
 
-      {/* INDEPENDENT OPERATIONS ACTION BUTTONS BAR */}
-      <div className="inventory-section" style={{ padding: '24px', marginBottom: '24px' }}>
-        <div className="operations-header" style={{ marginBottom: '16px' }}>
-          <h3 style={{ margin: '0 0 4px 0' }}>Staff Operations</h3>
-          <p className="operations-desc" style={{ margin: 0 }}>Record incoming deliveries or outgoing warehouse stock.</p>
+      {/* STAFF OPERATIONS SECTION WITH MATCHING LAYOUT CLASSES */}
+      <div className="transactions-card" style={{ marginBottom: '24px' }}>
+        <div className="operations-header">
+          <h3 style={{ margin: '0 0 8px 0' }}>Staff Operations</h3>
+          <p className="operations-desc">Record incoming deliveries or outgoing warehouse stock.</p>
         </div>
         <div className="action-buttons-container">
           <button 
+            type="button" 
             className="btn-action btn-stock-in" 
             onClick={() => openTransactionForm('IN')}>
             📥 Stock In
           </button>
           <button 
+            type="button" 
             className="btn-action btn-stock-out" 
             onClick={() => openTransactionForm('OUT')}>
             📤 Stock Out
@@ -165,7 +167,13 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
             style={{ maxWidth: '300px', margin: 0 }}
           />
         </div>
-
+        
+        <button 
+              type="submit" 
+              className={`submit-btn ${transactionType === 'IN' ? 'btn-in' : 'btn-out'}`}>
+                Confirm {transactionType === 'IN' ? 'Stock In' : 'Stock Out'}
+        </button>
+        
         <div className="table-responsive-container">
           <table className="ledger-table-view">
             <thead>
@@ -262,11 +270,7 @@ export default function StaffDashboard({ summary, threshold, setThreshold, onTra
                 />
               </div>
               
-              <button 
-                type="submit" 
-                className={`submit-btn ${transactionType === 'IN' ? 'btn-in' : 'btn-out'}`}>
-                Confirm {transactionType === 'IN' ? 'Stock In' : 'Stock Out'}
-              </button>
+              
             </form>
           </div>
         </div>
