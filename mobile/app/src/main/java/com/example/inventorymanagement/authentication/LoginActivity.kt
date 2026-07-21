@@ -1,12 +1,16 @@
-package com.example.inventorymanagement
+package com.example.inventorymanagement.authentication
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.inventorymanagement.AuthResponse
+import com.example.inventorymanagement.LoginRequest
+import com.example.inventorymanagement.R
+import com.example.inventorymanagement.RetrofitClient
+import com.example.inventorymanagement.dashboards.DashboardActivity
 import com.google.android.material.textfield.TextInputEditText
 import retrofit2.Call
 import retrofit2.Callback
@@ -46,7 +50,7 @@ class LoginActivity : AppCompatActivity() {
                         val session = response.body()!!
 
                         // Cache user identity details locally using SharedPreferences
-                        val sharedPreferences = getSharedPreferences("StockPulseAuth", Context.MODE_PRIVATE)
+                        val sharedPreferences = getSharedPreferences("StockPulseAuth", MODE_PRIVATE)
                         sharedPreferences.edit().apply {
                             putString("USER_NAME", session.name)
                             putString("USER_EMAIL", session.email)

@@ -1,4 +1,4 @@
-package com.example.inventorymanagement
+package com.example.inventorymanagement.modules.inventorymodule
 
 import android.graphics.Color
 import android.view.LayoutInflater
@@ -7,12 +7,14 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.inventorymanagement.R
 import org.json.JSONObject
 
 class InventoryAdapter(
     private var itemList: List<JSONObject>,
     private val isUserAdmin: Boolean,
-    private val onPurgeClicked: (String, String) -> Unit
+    private val onPurgeClicked: (String, String) -> Unit,
+    private val onItemClicked: (JSONObject) -> Unit // Click listener for editing
 ) : RecyclerView.Adapter<InventoryAdapter.InventoryViewHolder>() {
 
     private var currentThreshold: Int = 0
@@ -41,13 +43,17 @@ class InventoryAdapter(
         holder.tvCategory.text = item.optString("category", "General")
         holder.tvQuantity.text = "$qty units"
 
-        // HIGHLIGHT LOGIC: Turn the text red if stock falls below the threshold
+        // HIGHLIGHT LOGIC
         if (currentThreshold > 0 && qty < currentThreshold) {
-            holder.tvQuantity.setTextColor(Color.parseColor("#DC2626")) // Red alert
+            holder.tvQuantity.setTextColor(Color.parseColor("#DC2626"))
         } else {
-            holder.tvQuantity.setTextColor(Color.parseColor("#64748B")) // Default slate gray
+            holder.tvQuantity.setTextColor(Color.parseColor("#64748B"))
         }
 
+        // EDIT LOGIC: Tap the row to open edit dialog
+        holder.itemView.setOnClickListener { onItemClicked(item) }
+
+        // PURGE LOGIC
         if (isUserAdmin && itemId.isNotEmpty()) {
             holder.btnPurge.visibility = View.VISIBLE
             holder.btnPurge.setOnClickListener { onPurgeClicked(itemId, itemName) }

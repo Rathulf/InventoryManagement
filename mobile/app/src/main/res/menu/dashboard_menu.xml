@@ -8,6 +8,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_warehouse"
+        android:title="View Warehouse Stock"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_logout"
         android:title="@string/menu_logout"
         app:showAsAction="never" />

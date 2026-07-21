@@ -1,11 +1,13 @@
 package com.example.inventorymanagement
 
+import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import java.util.concurrent.TimeUnit
 
 // Data contracts matching your Spring Boot backend controllers
 data class RegisterRequest(val name: String, val email: String, val password: String, val role: String)
@@ -16,32 +18,35 @@ data class InventoryItem(
     val id: Long,
     val name: String,
     val sku: String?,
-    // Changed from 'qty' to 'quantity' to perfectly match your backend JSON payload
     val quantity: Int,
     val category: String?
 )
 
 interface AuthApi {
-    // Updated from /api/auth to /api/employees
     @POST("api/employees/register")
     fun registerUser(@Body request: RegisterRequest): Call<Void>
 
-    // Updated from /api/auth to /api/employees
     @POST("api/employees/login")
     fun loginUser(@Body request: LoginRequest): Call<AuthResponse>
 
-    // Updated from /api/inventory to /api/items
     @GET("api/items")
     fun getInventory(): Call<List<InventoryItem>>
 }
 
 object RetrofitClient {
-    // Pointing directly to your live production server on Render
     private const val BASE_URL = "https://stockpulse-cbdz.onrender.com/"
+
+    // Create a client that waits up to 60 seconds for Render to wake up
+    private val okHttpClient = OkHttpClient.Builder()
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .build()
 
     val instance: AuthApi by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(okHttpClient) // Attach the patient client here
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(AuthApi::class.java)

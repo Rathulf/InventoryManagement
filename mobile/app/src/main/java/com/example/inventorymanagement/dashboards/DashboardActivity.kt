@@ -1,4 +1,4 @@
-package com.example.inventorymanagement
+package com.example.inventorymanagement.dashboards
 
 import android.content.Context
 import android.content.Intent
@@ -17,6 +17,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.inventorymanagement.R
+import com.example.inventorymanagement.activities.WarehouseActivity
+import com.example.inventorymanagement.authentication.LoginActivity
+import com.example.inventorymanagement.modules.inventorymodule.InventoryAdapter
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import org.json.JSONArray
 import org.json.JSONObject
@@ -33,7 +37,6 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var tvTotalVolume: TextView
     private lateinit var fabAddItem: FloatingActionButton
 
-    // Search and Threshold UI variables
     private lateinit var etSearch: EditText
     private lateinit var etThreshold: EditText
 
@@ -42,7 +45,6 @@ class DashboardActivity : AppCompatActivity() {
 
     private var currentUserRole: String = "STAFF"
 
-    // Master list to hold data for local searching
     private var fullInventoryList = listOf<JSONObject>()
     private var currentThreshold = 0
 
@@ -50,7 +52,6 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
-        // Connect the toolbar for the dropdown menu
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
@@ -59,7 +60,6 @@ class DashboardActivity : AppCompatActivity() {
         tvTotalVolume = findViewById(R.id.tvTotalVolume)
         fabAddItem = findViewById(R.id.fabAddItem)
 
-        // Initialize the new inputs
         etSearch = findViewById(R.id.etSearch)
         etThreshold = findViewById(R.id.etThreshold)
 
@@ -69,9 +69,13 @@ class DashboardActivity : AppCompatActivity() {
         rvInventory = findViewById(R.id.rvInventory)
         rvInventory.layoutManager = LinearLayoutManager(this)
 
-        inventoryAdapter = InventoryAdapter(emptyList(), isUserAdmin = (currentUserRole == "ADMIN")) { itemId, itemName ->
-            confirmAndPurgeItem(itemId, itemName)
-        }
+        // Initialize adapter with edit capability
+        inventoryAdapter = InventoryAdapter(
+            emptyList(),
+            isUserAdmin = (currentUserRole == "ADMIN"),
+            onPurgeClicked = { itemId, itemName -> confirmAndPurgeItem(itemId, itemName) },
+            onItemClicked = { item -> showEditAssetDialog(item) }
+        )
         rvInventory.adapter = inventoryAdapter
 
         if (currentUserRole == "ADMIN") {
@@ -104,6 +108,10 @@ class DashboardActivity : AppCompatActivity() {
                 fetchLiveInventoryData()
                 true
             }
+            R.id.action_warehouse -> {
+                startActivity(Intent(this, WarehouseActivity::class.java))
+                true
+            }
             R.id.action_logout -> {
                 performLogout()
                 true
@@ -113,11 +121,9 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun performLogout() {
-        // Clear cached session
         val sharedPreferences = getSharedPreferences("StockPulseAuth", Context.MODE_PRIVATE)
         sharedPreferences.edit().clear().apply()
 
-        // Redirect to Login and clear back stack
         val intent = Intent(this, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
@@ -146,13 +152,14 @@ class DashboardActivity : AppCompatActivity() {
     private fun applyFilters() {
         val query = etSearch.text.toString().trim().lowercase()
 
-        // Filter based on search box OR low stock threshold
         val filteredList = if (query.isEmpty() && currentThreshold > 0) {
             fullInventoryList.filter { it.optInt("quantity", 0) < currentThreshold }
         } else if (query.isNotEmpty()) {
+            // Now searches by name, sku, OR category
             fullInventoryList.filter {
                 it.optString("name", "").lowercase().contains(query) ||
-                        it.optString("sku", "").lowercase().contains(query)
+                        it.optString("sku", "").lowercase().contains(query) ||
+                        it.optString("category", "").lowercase().contains(query)
             }
         } else {
             fullInventoryList
@@ -173,7 +180,6 @@ class DashboardActivity : AppCompatActivity() {
     private fun fetchLiveInventoryData() {
         thread {
             try {
-                // Pointing to live Render URL
                 val url = URL("https://stockpulse-cbdz.onrender.com/api/items")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
@@ -193,10 +199,8 @@ class DashboardActivity : AppCompatActivity() {
                         rawList.add(jsonArray.getJSONObject(i))
                     }
 
-                    // Eliminates matching SKU duplicates
                     val uniqueItemList = rawList.distinctBy { it.optString("sku", "N/A").trim().uppercase() }
 
-                    // Save to master list, then apply filters
                     fullInventoryList = uniqueItemList
                     applyFilters()
                 }
@@ -206,32 +210,6 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
-    private fun confirmAndPurgeItem(itemId: String, itemName: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Confirm Purge")
-            .setMessage("Are you sure you want to permanently clear $itemName from the backend ledger rows?")
-            .setNegativeButton("Cancel", null)
-            .setPositiveButton("Purge") { _, _ ->
-                thread {
-                    try {
-                        val url = URL("https://stockpulse-cbdz.onrender.com/api/items/$itemId")
-                        val connection = url.openConnection() as HttpURLConnection
-                        connection.requestMethod = "DELETE"
-                        connection.connect()
-
-                        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                            runOnUiThread {
-                                Toast.makeText(this, "Asset record successfully cleared.", Toast.LENGTH_SHORT).show()
-                                fetchLiveInventoryData()
-                            }
-                        }
-                    } catch (e: Exception) {
-                        runOnUiThread { Toast.makeText(this, "Network error disconnecting row records.", Toast.LENGTH_SHORT).show() }
-                    }
-                }
-            }
-            .show()
-    }
 
     private fun showRegisterAssetDialog() {
         val dialogBuilder = AlertDialog.Builder(this)
@@ -291,5 +269,99 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
         alertDialog.show()
+    }
+
+    private fun showEditAssetDialog(item: JSONObject) {
+        val dialogBuilder = AlertDialog.Builder(this)
+        val inflater = this.layoutInflater
+        val dialogView = inflater.inflate(R.layout.dialog_edit_item, null)
+        dialogBuilder.setView(dialogView)
+
+        val etSku = dialogView.findViewById<EditText>(R.id.etEditSku)
+        val etName = dialogView.findViewById<EditText>(R.id.etEditName)
+        val etCategory = dialogView.findViewById<EditText>(R.id.etEditCategory)
+        val etQuantity = dialogView.findViewById<EditText>(R.id.etEditQuantity)
+        val btnUpdate = dialogView.findViewById<Button>(R.id.btnDialogUpdate)
+
+        // Pre-fill the existing data
+        val itemId = item.optString("id")
+        etSku.setText(item.optString("sku"))
+        etName.setText(item.optString("name"))
+        etCategory.setText(item.optString("category"))
+        etQuantity.setText(item.optString("quantity"))
+
+        val alertDialog = dialogBuilder.create()
+
+        btnUpdate.setOnClickListener {
+            val skuText = etSku.text.toString().trim()
+            val nameText = etName.text.toString().trim()
+            val catText = etCategory.text.toString().trim()
+            val qtyText = etQuantity.text.toString().trim()
+
+            if (skuText.isEmpty() || nameText.isEmpty() || catText.isEmpty() || qtyText.isEmpty()) {
+                Toast.makeText(this, "Please populate all fields.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            thread {
+                try {
+                    val url = URL("https://stockpulse-cbdz.onrender.com/api/items/$itemId")
+                    val connection = url.openConnection() as HttpURLConnection
+                    connection.requestMethod = "PUT"
+                    connection.setRequestProperty("Content-Type", "application/json")
+                    connection.doOutput = true
+
+                    val payload = JSONObject().apply {
+                        put("sku", skuText)
+                        put("name", nameText)
+                        put("category", catText)
+                        put("quantity", qtyText.toInt())
+                    }
+
+                    val os = connection.outputStream
+                    os.write(payload.toString().toByteArray())
+                    os.flush()
+                    os.close()
+
+                    if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                        runOnUiThread {
+                            Toast.makeText(this@DashboardActivity, "Item Updated!", Toast.LENGTH_SHORT).show()
+                            alertDialog.dismiss()
+                            fetchLiveInventoryData()
+                        }
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread { Toast.makeText(this@DashboardActivity, "Update failed.", Toast.LENGTH_SHORT).show() }
+                }
+            }
+        }
+        alertDialog.show()
+    }
+
+    private fun confirmAndPurgeItem(itemId: String, itemName: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirm Purge")
+            .setMessage("Are you sure you want to permanently clear $itemName from the backend ledger rows?")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Purge") { _, _ ->
+                thread {
+                    try {
+                        val url = URL("https://stockpulse-cbdz.onrender.com/api/items/$itemId")
+                        val connection = url.openConnection() as HttpURLConnection
+                        connection.requestMethod = "DELETE"
+                        connection.connect()
+
+                        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                            runOnUiThread {
+                                Toast.makeText(this, "Asset record successfully cleared.", Toast.LENGTH_SHORT).show()
+                                fetchLiveInventoryData()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        runOnUiThread { Toast.makeText(this, "Network error disconnecting row records.", Toast.LENGTH_SHORT).show() }
+                    }
+                }
+            }
+            .show()
     }
 }
