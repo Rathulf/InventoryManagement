@@ -28,13 +28,17 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import java.text.NumberFormat
+import java.util.Locale
 import kotlin.concurrent.thread
 
 class DashboardActivity : AppCompatActivity() {
 
+    private lateinit var cardLowStock: View
     private lateinit var tvUserRoleBadge: TextView
     private lateinit var tvTotalSkus: TextView
-    private lateinit var tvTotalVolume: TextView
+    private lateinit var tvLowStock: TextView
+    private lateinit var tvTotalValue: TextView
     private lateinit var fabAddItem: FloatingActionButton
 
     private lateinit var etSearch: EditText
@@ -57,9 +61,13 @@ class DashboardActivity : AppCompatActivity() {
 
         tvUserRoleBadge = findViewById(R.id.tvUserRoleBadge)
         tvTotalSkus = findViewById(R.id.tvTotalSkus)
-        tvTotalVolume = findViewById(R.id.tvTotalVolume)
-        fabAddItem = findViewById(R.id.fabAddItem)
 
+        // NEW CARD BINDINGS
+        cardLowStock = findViewById(R.id.cardLowStock)
+        tvLowStock = findViewById(R.id.tvLowStock)
+        tvTotalValue = findViewById(R.id.tvTotalValue)
+
+        fabAddItem = findViewById(R.id.fabAddItem)
         etSearch = findViewById(R.id.etSearch)
         etThreshold = findViewById(R.id.etThreshold)
 
@@ -89,6 +97,12 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         fabAddItem.setOnClickListener { showRegisterAssetDialog() }
+
+        // Makes the Orange Card interactive
+        cardLowStock.setOnClickListener {
+            etThreshold.setText("15")
+            Toast.makeText(this, "Filtering ledger for Low Stock items...", Toast.LENGTH_SHORT).show()
+        }
 
         setupSearchAndFilterListeners()
         fetchLiveInventoryData()
@@ -152,27 +166,43 @@ class DashboardActivity : AppCompatActivity() {
     private fun applyFilters() {
         val query = etSearch.text.toString().trim().lowercase()
 
-        val filteredList = if (query.isEmpty() && currentThreshold > 0) {
-            fullInventoryList.filter { it.optInt("quantity", 0) < currentThreshold }
-        } else if (query.isNotEmpty()) {
-            // Now searches by name, sku, OR category
-            fullInventoryList.filter {
-                it.optString("name", "").lowercase().contains(query) ||
-                        it.optString("sku", "").lowercase().contains(query) ||
-                        it.optString("category", "").lowercase().contains(query)
-            }
-        } else {
-            fullInventoryList
+        // Smarter Filter: Checks BOTH Search AND Threshold simultaneously
+        val filteredList = fullInventoryList.filter { item ->
+            val qty = item.optInt("quantity", 0)
+
+            val matchesSearch = query.isEmpty() ||
+                    item.optString("name", "").lowercase().contains(query) ||
+                    item.optString("sku", "").lowercase().contains(query) ||
+                    item.optString("category", "").lowercase().contains(query)
+
+            val matchesThreshold = currentThreshold == 0 || qty <= currentThreshold
+
+            matchesSearch && matchesThreshold
         }
 
-        var grossVolume = 0
+        // Dashboard Metrics Calculation
+        var lowStockCount = 0
+        var totalValue = 0.0
+        val stockWarningLimit = if (currentThreshold > 0) currentThreshold else 15
+
         for (itemObj in filteredList) {
-            grossVolume += itemObj.optInt("quantity", 0)
+            val qty = itemObj.optInt("quantity", 0)
+            val price = itemObj.optDouble("price", 0.0)
+
+            if (qty <= stockWarningLimit) {
+                lowStockCount++
+            }
+            totalValue += (qty * price)
         }
+
+        // Formats the Double into Philippine Peso Currency
+        val format = NumberFormat.getCurrencyInstance(Locale("en", "PH"))
+        val formattedValue = format.format(totalValue)
 
         runOnUiThread {
             tvTotalSkus.text = filteredList.size.toString()
-            tvTotalVolume.text = "$grossVolume units"
+            tvLowStock.text = lowStockCount.toString()
+            tvTotalValue.text = formattedValue
             inventoryAdapter.updateData(filteredList, currentThreshold)
         }
     }
@@ -209,7 +239,6 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun showRegisterAssetDialog() {
         val dialogBuilder = AlertDialog.Builder(this)
@@ -283,7 +312,6 @@ class DashboardActivity : AppCompatActivity() {
         val etQuantity = dialogView.findViewById<EditText>(R.id.etEditQuantity)
         val btnUpdate = dialogView.findViewById<Button>(R.id.btnDialogUpdate)
 
-        // Pre-fill the existing data
         val itemId = item.optString("id")
         etSku.setText(item.optString("sku"))
         etName.setText(item.optString("name"))
@@ -293,6 +321,7 @@ class DashboardActivity : AppCompatActivity() {
         val alertDialog = dialogBuilder.create()
 
         btnUpdate.setOnClickListener {
+
             val skuText = etSku.text.toString().trim()
             val nameText = etName.text.toString().trim()
             val catText = etCategory.text.toString().trim()
