@@ -13,8 +13,12 @@ export default function GenerateReports() {
       })
       .then(data => {
         if (Array.isArray(data)) {
-          // Sort items by ID in ascending order (lowest/oldest ID first)
-          const sortedData = data.sort((a, b) => a.id - b.id);
+          // Force sort: handles both numerical and string IDs safely from oldest to newest
+          const sortedData = data.sort((a, b) => {
+            const idA = Number(a.id) || 0;
+            const idB = Number(b.id) || 0;
+            return idA - idB;
+          });
           setInventory(sortedData);
         }
       })
