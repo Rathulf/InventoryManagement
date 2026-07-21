@@ -95,12 +95,12 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
       alert("Could not reach the database.");
     }
   };
-
+  
   return (
     <div style={{ position: 'relative', width: '100%' }}>
       
-      {/* METRICS CARDS */}
-      <div className="metrics-layout-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+      {/* 1. RESTORED METRICS CARDS */}
+      <div className="metrics-layout-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: '24px' }}>
         <div className="metric-display-card item-count">
           <h4>Total Products</h4>
           <p className="value">{totalProducts}</p>
@@ -111,10 +111,11 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
         </div>
       </div>
 
-      <div className="inventory-section mt-0">
+      {/* 2. THE MAIN INVENTORY TABLE */}
+      <div className="inventory-section">
         
         {/* DYNAMIC CONTROLS BAR */}
-        <div className="search-filter-controls-bar">
+        <div className="search-filter-controls-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <label style={{ fontSize: '14px', fontWeight: '600', color: '#475569' }}>
               Low Stock Threshold:
@@ -188,6 +189,31 @@ export default function StaffDashboard({ summary, threshold, setThreshold }) {
           </table>
         </div>
       </div>
+
+      {/* 3. THE POPUP MODAL WITH YOUR COMPONENT */}
+      {showForm && activeItem && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button className="modal-close-btn" onClick={() => setShowForm(false)}>
+              &times;
+            </button>
+            
+            <div className="operations-header">
+              <h3>
+                {transactionType === 'IN' ? 'Stock In (Receiving)' : 'Stock Out (Dispatching)'}
+              </h3>
+              <p className="operations-desc">
+                Selected Product: <strong>{activeItem.name}</strong>
+              </p>
+            </div>
+
+            {/* YOUR PRE-BUILT TRANSACTION COMPONENT */}
+            <StockTransaction initialType={transactionType} isLocked={true} />
+            
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 }
