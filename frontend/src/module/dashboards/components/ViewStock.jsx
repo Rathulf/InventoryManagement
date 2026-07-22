@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useDashboardFilter } from '../hooks/useDashboardFilter'; 
+import { useDashboardFilter } from '../../hooks/useDashboardFilter';
 
 export default function ViewStock({ threshold = 200 }) {
   const [inventory, setInventory] = useState([]);
