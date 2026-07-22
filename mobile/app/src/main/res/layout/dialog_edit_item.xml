@@ -8,13 +8,13 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Register New Item"
+        android:text="Edit Asset Details"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
 
     <EditText
-        android:id="@+id/etDialogSku"
+        android:id="@+id/etEditSku"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="SKU"
@@ -22,7 +22,7 @@
         android:layout_marginBottom="8dp"/>
 
     <EditText
-        android:id="@+id/etDialogName"
+        android:id="@+id/etEditName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Item Name"
@@ -30,7 +30,7 @@
         android:layout_marginBottom="8dp"/>
 
     <EditText
-        android:id="@+id/etDialogCategory"
+        android:id="@+id/etEditCategory"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Category"
@@ -38,7 +38,7 @@
         android:layout_marginBottom="8dp"/>
 
     <EditText
-        android:id="@+id/etDialogQuantity"
+        android:id="@+id/etEditQuantity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Quantity"
@@ -47,7 +47,7 @@
 
     <!-- New Price Field -->
     <EditText
-        android:id="@+id/etDialogPrice"
+        android:id="@+id/etEditPrice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Price (₱)"
@@ -55,11 +55,11 @@
         android:layout_marginBottom="16dp"/>
 
     <Button
-        android:id="@+id/btnDialogSave"
+        android:id="@+id/btnDialogUpdate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="#007FFF"
         android:textColor="#FFFFFF"
-        android:text="Save Item"/>
+        android:text="Update Item"/>
 
 </LinearLayout>

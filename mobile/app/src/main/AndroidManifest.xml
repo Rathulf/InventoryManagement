@@ -17,11 +17,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".RegisterActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".LoginActivity"
+            android:name=".authentication.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,7 +26,19 @@
         </activity>
 
         <activity
-            android:name=".DashboardActivity"
+            android:name=".activities.ManageInventoryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.StaffDashboardActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.WarehouseActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".dashboards.DashboardActivity"
             android:exported="false" />
 
         <activity

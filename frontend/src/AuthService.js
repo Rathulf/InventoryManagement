@@ -1,4 +1,4 @@
-const BASE_URL = "https://stockpulse-cbdz.onrender.com/api/auth";
+const BASE_URL = "https://stockpulse-cbdz.onrender.com/api/employees";
 
 export const register = async (name, email, password, role) => {
   const response = await fetch(`${BASE_URL}/register`, {
@@ -26,4 +26,18 @@ export const login = async (email, password) => {
     throw new Error(errorText || "Login failed");
   }
   return response.json(); // Returns message, name, email, and role
+};
+
+export const changePassword = async (userId, newPassword) => {
+  const response = await fetch(`${BASE_URL}/${userId}/change-password`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newPassword }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Failed to update password");
+  }
+  return response.json();
 };

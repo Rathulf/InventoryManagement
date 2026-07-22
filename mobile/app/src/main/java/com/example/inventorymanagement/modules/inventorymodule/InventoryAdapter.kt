@@ -1,18 +1,24 @@
-package com.example.inventorymanagement
+package com.example.inventorymanagement.modules.inventorymodule
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.inventorymanagement.R
 import org.json.JSONObject
 
 class InventoryAdapter(
     private var itemList: List<JSONObject>,
     private val isUserAdmin: Boolean,
-    private val onPurgeClicked: (String, String) -> Unit
+    private val onPurgeClicked: (String, String) -> Unit,
+    private val onItemClicked: (JSONObject) -> Unit,
+    private val onTransactionClicked: (JSONObject) -> Unit
 ) : RecyclerView.Adapter<InventoryAdapter.InventoryViewHolder>() {
+
+    private var currentThreshold: Int = 0
 
     class InventoryViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvSku: TextView = view.findViewById(R.id.tvRowSku)
@@ -31,12 +37,24 @@ class InventoryAdapter(
         val item = itemList[position]
         val itemId = item.optString("id", "")
         val itemName = item.optString("name", "Unknown Item")
+        val qty = item.optInt("quantity", 0)
 
         holder.tvSku.text = item.optString("sku", "N/A")
         holder.tvName.text = itemName
         holder.tvCategory.text = item.optString("category", "General")
-        holder.tvQuantity.text = "${item.optInt("quantity", 0)} units"
+        holder.tvQuantity.text = "$qty units"
 
+        // HIGHLIGHT LOGIC
+        if (currentThreshold > 0 && qty < currentThreshold) {
+            holder.tvQuantity.setTextColor(Color.parseColor("#DC2626"))
+        } else {
+            holder.tvQuantity.setTextColor(Color.parseColor("#64748B"))
+        }
+
+        // EDIT LOGIC: Tap the row to open edit dialog
+        holder.itemView.setOnClickListener { onItemClicked(item) }
+
+        // PURGE LOGIC
         if (isUserAdmin && itemId.isNotEmpty()) {
             holder.btnPurge.visibility = View.VISIBLE
             holder.btnPurge.setOnClickListener { onPurgeClicked(itemId, itemName) }
@@ -47,8 +65,9 @@ class InventoryAdapter(
 
     override fun getItemCount(): Int = itemList.size
 
-    fun updateData(newList: List<JSONObject>) {
+    fun updateData(newList: List<JSONObject>, newThreshold: Int = 0) {
         itemList = newList
+        currentThreshold = newThreshold
         notifyDataSetChanged()
     }
 }

@@ -34,6 +34,29 @@ public class InventoryItemService {
         return savedItem;
     }
 
+    // NEW: Update method linked to your Controller's @PutMapping
+    public InventoryItem updateItem(Long id, InventoryItem itemDetails) {
+        return repository.findById(id).map(existingItem -> {
+            // Update all standard fields, including the new price variable
+            existingItem.setSku(itemDetails.getSku());
+            existingItem.setName(itemDetails.getName());
+            existingItem.setCategory(itemDetails.getCategory());
+            existingItem.setQuantity(itemDetails.getQuantity());
+            existingItem.setPrice(itemDetails.getPrice()); 
+            
+            InventoryItem updatedItem = repository.save(existingItem);
+            
+            // Automatically create an audit log for updates to maintain consistency
+            auditLogService.logAction(
+                "UPDATE_INVENTORY", 
+                "System Admin", 
+                "Updated stock item: " + updatedItem.getName() + " (SKU: " + updatedItem.getSku() + ")"
+            );
+            
+            return updatedItem;
+        }).orElse(null);
+    }
+
     public boolean deleteItem(Long id) {
         Optional<InventoryItem> itemOpt = repository.findById(id);
         if (itemOpt.isPresent()) {

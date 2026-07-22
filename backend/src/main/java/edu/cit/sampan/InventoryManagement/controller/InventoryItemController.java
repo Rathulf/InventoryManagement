@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/items")
-@CrossOrigin(origins = "http://localhost:5173") 
 public class InventoryItemController {
 
     @Autowired
@@ -24,6 +23,16 @@ public class InventoryItemController {
     @PostMapping
     public ResponseEntity<InventoryItem> addItem(@RequestBody InventoryItem item) {
         return ResponseEntity.ok(inventoryItemService.addItem(item));
+    }
+
+    // NEW: The missing PUT method to handle updates from Android
+    @PutMapping("/{id}")
+    public ResponseEntity<InventoryItem> updateItem(@PathVariable Long id, @RequestBody InventoryItem itemDetails) {
+        InventoryItem updatedItem = inventoryItemService.updateItem(id, itemDetails);
+        if (updatedItem != null) {
+            return ResponseEntity.ok(updatedItem);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")

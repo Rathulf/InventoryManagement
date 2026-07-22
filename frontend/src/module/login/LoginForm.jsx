@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles.css';
+// Import both functions from your AuthService
+import { login, changePassword } from "../../AuthService";
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,32 +18,27 @@ export default function Login() {
   const navigate = useNavigate();
 
   // Initial Login Check
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
-    fetch('http://localhost:8080/api/employees/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-      })
-      .then((userData) => {
-        if (userData.requiresPasswordChange) {
-          setTempUserData(userData);
-          setIsResetMode(true); // Switch to password reset screen
-        } else {
-          finalizeLogin(userData); // Standard login
-        }
-      })
-      .catch(() => setError("Invalid credentials or inactive account."));
+    try {
+      // Use the live login function from AuthService
+      const userData = await login(email, password);
+      
+      if (userData.requiresPasswordChange) {
+        setTempUserData(userData);
+        setIsResetMode(true); // Switch to password reset screen
+      } else {
+        finalizeLogin(userData); // Standard login
+      }
+    } catch (err) {
+      setError("Invalid credentials or inactive account.");
+    }
   };
 
   // Submit New Password
-  const handlePasswordReset = (e) => {
+  const handlePasswordReset = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -50,22 +47,14 @@ export default function Login() {
       return;
     }
 
-    fetch(`http://localhost:8080/api/employees/${tempUserData.id}/change-password`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ newPassword })
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to update password");
-        return res.json();
-      })
-      .then((updatedUserData) => {
-        finalizeLogin(updatedUserData);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("An error occurred while saving your password.");
-      });
+    try {
+      // Use the live changePassword function from AuthService
+      const updatedUserData = await changePassword(tempUserData.id, newPassword);
+      finalizeLogin(updatedUserData);
+    } catch (err) {
+      console.error(err);
+      setError("An error occurred while saving your password.");
+    }
   };
 
   // Save session and redirect

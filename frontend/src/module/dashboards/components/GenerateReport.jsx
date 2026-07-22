@@ -4,15 +4,23 @@ export default function GenerateReports() {
   const [inventory, setInventory] = useState([]);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // 1. Fetch the master inventory list when the page loads
+  // 1. Fetch the master inventory list when the page loads and sort by ID ascending (oldest to newest)
   useEffect(() => {
-    fetch('http://localhost:8080/api/items')
+    fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch report data");
         return res.json();
       })
       .then(data => {
-        if (Array.isArray(data)) setInventory(data);
+        if (Array.isArray(data)) {
+          // Force sort: handles both numerical and string IDs safely from oldest to newest
+          const sortedData = data.sort((a, b) => {
+            const idA = Number(a.id) || 0;
+            const idB = Number(b.id) || 0;
+            return idA - idB;
+          });
+          setInventory(sortedData);
+        }
       })
       .catch(err => console.error("Error fetching report data:", err));
   }, []);

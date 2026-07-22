@@ -12,10 +12,24 @@ export default function StockTransaction({ initialType = 'IN', isLocked = false 
   });
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/items')
-      .then(res => res.json())
-      .then(data => { if (Array.isArray(data)) setInventory(data); })
-      .catch(err => console.error("Error loading inventory:", err));
+    // Updated to point to your live Render backend
+    fetch('https://stockpulse-cbdz.onrender.com/api/items')
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch items");
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+          // FIX: Changed setFullInventory to setInventory to match your state hook
+          setInventory(data);
+        } else {
+          setInventory([]);
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching inventory for search:", err);
+        setInventory([]); 
+      });
   }, []);
 
   const handleInputChange = (e) => {
@@ -24,7 +38,7 @@ export default function StockTransaction({ initialType = 'IN', isLocked = false 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch('http://localhost:8080/api/transactions/process', {
+    fetch('https://stockpulse-cbdz.onrender.com/api/transactions/process', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
