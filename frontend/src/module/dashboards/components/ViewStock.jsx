@@ -1,23 +1,22 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useDashboardFilter } from '../../hooks/useDashboardFilter';
+import { useDashboardFilter } from '../../hooks/useDashboardFilter'; // Check this path
 
 export default function ViewStock({ threshold = 200 }) {
   const [inventory, setInventory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 1. Pull the new category states from the updated hook
+  // Hook initialized WITHOUT threshold so it displays all items
   const {
     searchQuery,
     setSearchQuery,
     selectedCategory,
     setSelectedCategory,
     filteredData,
-  } = useDashboardFilter(inventory, threshold);
+  } = useDashboardFilter(inventory);
 
-  // 2. Dynamically get a list of unique categories from the database for the dropdown
   const uniqueCategories = useMemo(() => {
     const categories = inventory.map(item => item.category || 'Uncategorized');
-    return [...new Set(categories)]; // Removes duplicates
+    return [...new Set(categories)]; 
   }, [inventory]);
 
   useEffect(() => {
@@ -45,7 +44,6 @@ export default function ViewStock({ threshold = 200 }) {
     <div className="inventory-section mt-0">
       <div className="creation-form-block">
         
-        {/* --- HEADER & FILTER SECTION --- */}
         <div className="operations-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
           <div>
             <h3 style={{ margin: '0 0 0.5rem 0' }}>Warehouse Stock Ledger</h3>
@@ -55,7 +53,6 @@ export default function ViewStock({ threshold = 200 }) {
           </div>
           
           <div className="search-filter-controls-bar" style={{ marginBottom: 0, flexWrap: 'wrap' }}>
-            {/* Category Dropdown */}
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
@@ -67,7 +64,6 @@ export default function ViewStock({ threshold = 200 }) {
               ))}
             </select>
 
-            {/* Text Search Bar */}
             <input
               type="text"
               placeholder="Search SKU, Name, or Category..."
@@ -106,6 +102,7 @@ export default function ViewStock({ threshold = 200 }) {
                         <span className="badge-cat">{item.category || 'Uncategorized'}</span>
                       </td>
                       <td className="center-cell">
+                        {/* Threshold prop is still correctly used here for styling */}
                         <span className={item.quantity <= threshold ? "danger-stock" : "normal-stock"}>
                           {item.quantity}
                         </span>

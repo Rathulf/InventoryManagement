@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useDashboardFilter } from '../../hooks/useDashboardFilter'; // Make sure this path is correct!
+import { useDashboardFilter } from '../../hooks/useDashboardFilter'; // Check this path
 
 export default function ManageStock() {
   const [inventory, setInventory] = useState([]);
@@ -13,7 +13,7 @@ export default function ManageStock() {
     threshold: 200 
   });
 
-  // --- 1. Hooking up the filter state ---
+  // Hook initialized WITHOUT threshold so it displays all items
   const {
     searchQuery,
     setSearchQuery,
@@ -22,13 +22,11 @@ export default function ManageStock() {
     filteredData,
   } = useDashboardFilter(inventory);
 
-  // --- 2. Extracting unique categories for the dropdown ---
   const uniqueCategories = useMemo(() => {
     const categories = inventory.map(item => item.category || 'Uncategorized');
     return [...new Set(categories)]; 
   }, [inventory]);
 
-  // Safe Fetch Function
   const fetchInventory = () => {
     fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
@@ -59,7 +57,6 @@ export default function ManageStock() {
     });
   };
 
-  // Add Item Function
   const handleAddItem = (e) => {
     e.preventDefault(); 
     fetch('https://stockpulse-cbdz.onrender.com/api/items', {
@@ -85,7 +82,6 @@ export default function ManageStock() {
       .catch(err => console.error("Error adding item:", err));
   };
 
-  // Delete Function
   const handleDelete = (id) => {
     if (!window.confirm("Are you sure you want to purge this record?")) return;
     fetch(`https://stockpulse-cbdz.onrender.com/api/items/${id}`, {
@@ -113,7 +109,6 @@ export default function ManageStock() {
             <option value="Furniture">Furniture</option>
             <option value="Supplies">Supplies</option>
             <option value="Hardware">Hardware</option>
-            <option value="Consumable">Consumable</option>
           </select>
           
           <input type="number" name="price" placeholder="Price (₱)" value={formData.price} onChange={handleInputChange} min="0" step="0.01" required />
@@ -136,7 +131,6 @@ export default function ManageStock() {
         </div>
         
         <div className="search-filter-controls-bar" style={{ marginBottom: 0, flexWrap: 'wrap' }}>
-          {/* Category Dropdown */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -148,7 +142,6 @@ export default function ManageStock() {
             ))}
           </select>
 
-          {/* Text Search Bar */}
           <input
             type="text"
             placeholder="Search SKU, Name, or Category..."
@@ -159,9 +152,7 @@ export default function ManageStock() {
           />
         </div>
       </div>
-      {/* --------------------------------- */}
       
-      {/* WRAPPED IN RESPONSIVE CONTAINER */}
       <div className="table-responsive-container">
         <table className="ledger-table-view">
           <thead>
@@ -183,7 +174,6 @@ export default function ManageStock() {
                 </td>
               </tr>
             ) : (
-              // --- 3. Changed map from inventory to filteredData ---
               filteredData.map((item) => (
                 <tr key={item.id}>
                   <td className="sku-cell">{item.sku}</td>
