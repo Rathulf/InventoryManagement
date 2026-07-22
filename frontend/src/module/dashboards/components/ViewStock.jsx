@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDashboardFilter } from '../hooks/useDashboardFilter'; // Adjust this path based on your folder structure
+import { useDashboardFilter } from '../../hooks/useDashboardFilter';
 
 export default function ViewStock({ threshold = 200 }) {
   const [inventory, setInventory] = useState([]);
