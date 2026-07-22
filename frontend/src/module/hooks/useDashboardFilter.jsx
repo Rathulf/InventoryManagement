@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 export const useDashboardFilter = (initialData = [], initialThreshold = 0) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [stockThreshold, setStockThreshold] = useState(initialThreshold); 
-  const [selectedCategory, setSelectedCategory] = useState(''); // NEW: Category state
+  const [selectedCategory, setSelectedCategory] = useState(''); 
 
   const filteredData = useMemo(() => {
     return initialData.filter((item) => {
@@ -18,7 +18,6 @@ export const useDashboardFilter = (initialData = [], initialThreshold = 0) => {
       const matchesThreshold =
         stockThreshold === 0 || item.quantity <= stockThreshold;
 
-      // NEW: Check if the item matches the dropdown selection
       const matchesCategory = 
         selectedCategory === '' || 
         (item.category || 'Uncategorized') === selectedCategory;
@@ -32,8 +31,8 @@ export const useDashboardFilter = (initialData = [], initialThreshold = 0) => {
     setSearchQuery,
     stockThreshold,
     setStockThreshold,
-    selectedCategory,     // Export the new state
-    setSelectedCategory,  // Export the new setter
+    selectedCategory,     
+    setSelectedCategory,  
     filteredData,
   };
 };
