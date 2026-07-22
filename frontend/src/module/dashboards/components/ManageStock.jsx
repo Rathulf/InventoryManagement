@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useDashboardFilter } from '../../hooks/useDashboardFilter'; // Make sure this path is correct!
 
 export default function ManageStock() {
   const [inventory, setInventory] = useState([]);
@@ -12,7 +13,22 @@ export default function ManageStock() {
     threshold: 200 
   });
 
-  // 1. Safe Fetch Function
+  // --- 1. Hooking up the filter state ---
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setSelectedCategory,
+    filteredData,
+  } = useDashboardFilter(inventory);
+
+  // --- 2. Extracting unique categories for the dropdown ---
+  const uniqueCategories = useMemo(() => {
+    const categories = inventory.map(item => item.category || 'Uncategorized');
+    return [...new Set(categories)]; 
+  }, [inventory]);
+
+  // Safe Fetch Function
   const fetchInventory = () => {
     fetch('https://stockpulse-cbdz.onrender.com/api/items')
       .then(res => {
@@ -35,6 +51,7 @@ export default function ManageStock() {
   useEffect(() => {
     fetchInventory();
   }, []);
+
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
@@ -42,7 +59,7 @@ export default function ManageStock() {
     });
   };
 
-  // 3. Add Item Function
+  // Add Item Function
   const handleAddItem = (e) => {
     e.preventDefault(); 
     fetch('https://stockpulse-cbdz.onrender.com/api/items', {
@@ -68,7 +85,7 @@ export default function ManageStock() {
       .catch(err => console.error("Error adding item:", err));
   };
 
-  // 4. Delete Function
+  // Delete Function
   const handleDelete = (id) => {
     if (!window.confirm("Are you sure you want to purge this record?")) return;
     fetch(`https://stockpulse-cbdz.onrender.com/api/items/${id}`, {
@@ -96,6 +113,7 @@ export default function ManageStock() {
             <option value="Furniture">Furniture</option>
             <option value="Supplies">Supplies</option>
             <option value="Hardware">Hardware</option>
+            <option value="Consumable">Consumable</option>
           </select>
           
           <input type="number" name="price" placeholder="Price (₱)" value={formData.price} onChange={handleInputChange} min="0" step="0.01" required />
@@ -108,8 +126,40 @@ export default function ManageStock() {
 
       <hr className="section-divider" />
 
-      {/* MANAGE ITEMS TABLE */}
-      <h3>Manage Existing Stock</h3>
+      {/* --- HEADER & FILTER SECTION --- */}
+      <div className="operations-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div>
+          <h3 style={{ margin: '0 0 0.5rem 0' }}>Manage Existing Stock</h3>
+          <p className="report-description mt-0" style={{ marginBottom: 0 }}>
+            Update, modify, or remove existing warehouse records.
+          </p>
+        </div>
+        
+        <div className="search-filter-controls-bar" style={{ marginBottom: 0, flexWrap: 'wrap' }}>
+          {/* Category Dropdown */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="category-dropdown-selector"
+          >
+            <option value="">All Categories</option>
+            {uniqueCategories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+
+          {/* Text Search Bar */}
+          <input
+            type="text"
+            placeholder="Search SKU, Name, or Category..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input-box"
+            style={{ minWidth: '260px' }}
+          />
+        </div>
+      </div>
+      {/* --------------------------------- */}
       
       {/* WRAPPED IN RESPONSIVE CONTAINER */}
       <div className="table-responsive-container">
@@ -124,12 +174,17 @@ export default function ManageStock() {
             </tr>
           </thead>
           <tbody>
-            {inventory.length === 0 ? (
+            {filteredData.length === 0 ? (
               <tr>
-                <td colSpan="5" className="empty-table-state">No products to manage.</td>
+                <td colSpan="5" className="empty-table-state">
+                  {inventory.length === 0 
+                    ? "No products to manage." 
+                    : "No items match your selected filters."}
+                </td>
               </tr>
             ) : (
-              inventory.map((item) => (
+              // --- 3. Changed map from inventory to filteredData ---
+              filteredData.map((item) => (
                 <tr key={item.id}>
                   <td className="sku-cell">{item.sku}</td>
                   <td><strong>{item.name}</strong></td>
