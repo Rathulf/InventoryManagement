@@ -44,20 +44,22 @@ export default function ViewStock({ threshold = 200 }) {
   return (
     <div className="inventory-section mt-0">
       <div className="creation-form-block">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+        
+        {/* --- HEADER & FILTER SECTION --- */}
+        <div className="operations-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
           <div>
-            <h3>Warehouse Stock Ledger</h3>
-            <p className="report-description">Current overview of all items in the warehouse.</p>
+            <h3 style={{ margin: '0 0 0.5rem 0' }}>Warehouse Stock Ledger</h3>
+            <p className="report-description mt-0" style={{ marginBottom: 0 }}>
+              Current overview of all items in the warehouse.
+            </p>
           </div>
           
-          {/* 3. Wrap search and dropdown in a flex container */}
-          <div className="search-container" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            
+          <div className="search-filter-controls-bar" style={{ marginBottom: 0, flexWrap: 'wrap' }}>
             {/* Category Dropdown */}
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '150px' }}
+              className="category-dropdown-selector"
             >
               <option value="">All Categories</option>
               {uniqueCategories.map((cat) => (
@@ -71,8 +73,8 @@ export default function ViewStock({ threshold = 200 }) {
               placeholder="Search SKU, Name, or Category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
-              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '250px' }}
+              className="search-input-box"
+              style={{ minWidth: '260px' }}
             />
           </div>
         </div>
