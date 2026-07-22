@@ -109,6 +109,7 @@ export default function ManageStock() {
             <option value="Furniture">Furniture</option>
             <option value="Supplies">Supplies</option>
             <option value="Hardware">Hardware</option>
+            <option valie="Consumables">Consumables</option>
           </select>
           
           <input type="number" name="price" placeholder="Price (₱)" value={formData.price} onChange={handleInputChange} min="0" step="0.01" required />
