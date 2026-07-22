@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../assets/styles.css';
-// Import both functions from your AuthService
 import { login, changePassword } from "../../AuthService";
 
 export default function Login() {
@@ -17,7 +16,6 @@ export default function Login() {
 
   const navigate = useNavigate();
 
-  // Initial Login Check
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -28,16 +26,15 @@ export default function Login() {
       
       if (userData.requiresPasswordChange) {
         setTempUserData(userData);
-        setIsResetMode(true); // Switch to password reset screen
+        setIsResetMode(true);
       } else {
-        finalizeLogin(userData); // Standard login
+        finalizeLogin(userData); 
       }
     } catch (err) {
       setError("Invalid credentials or inactive account.");
     }
   };
 
-  // Submit New Password
   const handlePasswordReset = async (e) => {
     e.preventDefault();
     setError('');
@@ -48,7 +45,6 @@ export default function Login() {
     }
 
     try {
-      // Use the live changePassword function from AuthService
       const updatedUserData = await changePassword(tempUserData.id, newPassword);
       finalizeLogin(updatedUserData);
     } catch (err) {
@@ -61,6 +57,7 @@ export default function Login() {
   const finalizeLogin = (userData) => {
     localStorage.setItem('userRole', userData.role);
     localStorage.setItem('userName', userData.name);
+    localStorage.setItem('isLoggedIn', 'true'); // Added this line to persist session
     navigate('/dashboard');
   };
 
