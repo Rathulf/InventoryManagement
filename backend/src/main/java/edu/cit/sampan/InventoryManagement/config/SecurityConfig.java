@@ -1,5 +1,10 @@
 package edu.cit.sampan.InventoryManagement.config;
 
+// NEW IMPORTS REQUIRED FOR MIGRATION
+import edu.cit.sampan.InventoryManagement.entity.Employee;
+import edu.cit.sampan.InventoryManagement.repository.EmployeeRepository;
+import org.springframework.boot.CommandLineRunner;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,13 +41,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Permissive rule 1: Allow your authentication login path endpoints
                         .requestMatchers("/api/auth/**").permitAll()
-
+                        
                         // Permissive rule 2: Allow all metric analytics endpoints
                         .requestMatchers("/api/dashboard-analytics/**").permitAll()
-
+                        
                         // Permissive rule 3: UNBLOCK POST, DELETE, and GET actions for inventory management
                         .requestMatchers("/api/inventory/**").permitAll()
-
+                        
                         // Fallback catch-all condition rule
                         .anyRequest().permitAll()
                 );
@@ -67,5 +72,30 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    // NEW: AUTOMATIC PASSWORD MIGRATION SCRIPT
+    @Bean
+    public CommandLineRunner migratePasswords(EmployeeRepository repository, PasswordEncoder passwordEncoder) {
+        return args -> {
+            List<Employee> employees = repository.findAll();
+            int updatedCount = 0;
+
+            for (Employee emp : employees) {
+                String currentPassword = emp.getPassword();
+                
+                if (currentPassword != null && !currentPassword.startsWith("$2a$")) {
+                    String hashedPassword = passwordEncoder.encode(currentPassword);
+                    emp.setPassword(hashedPassword);
+                    repository.save(emp);
+                    updatedCount++;
+                    System.out.println("Migrated plain-text password for user: " + emp.getEmail());
+                }
+            }
+            
+            if (updatedCount > 0) {
+                System.out.println("Successfully hashed " + updatedCount + " legacy passwords.");
+            }
+        };
     }
 }
