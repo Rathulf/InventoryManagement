@@ -30,6 +30,10 @@ public class EmployeeController {
         dto.setEmail(emp.getEmail());
         dto.setRole(emp.getRole());
         dto.setStatus(emp.getStatus());
+        
+        // NEW: Map the security flag to the DTO so React knows if it needs to lock the user out
+        dto.setRequiresPasswordChange(emp.isRequiresPasswordChange());
+        
         return dto;
     }
 
