@@ -40,7 +40,6 @@ export default function ManageEmployees() {
       });
 
       if (!response.ok) {
-        // Parse the exact error message sent from your Spring Boot GlobalExceptionHandler
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to add employee");
       }
@@ -53,12 +52,17 @@ export default function ManageEmployees() {
 
     } catch (error) {
       console.error("Error adding employee:", error);
-      // Display the error directly to the user
       toast.error(error.message, { id: toastId });
     }
   };
 
-  const handleStatusChange = (id, newStatus) => {
+  // UPDATED: Now requires the 'role' parameter to perform a safety check
+  const handleStatusChange = (id, newStatus, role) => {
+    if (role === 'Admin' && newStatus === 'Inactive') {
+      toast.error("Action Denied: Admin accounts cannot be set to Inactive.");
+      return; // Stops the function immediately
+    }
+
     fetch(`https://stockpulse-cbdz.onrender.com/api/employees/${id}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -134,22 +138,27 @@ export default function ManageEmployees() {
                   </td>
                   
                   <td className="center-cell">
-                    <select 
-                      value={emp.status} 
-                      onChange={(e) => handleStatusChange(emp.id, e.target.value)}
-                      style={{
-                        border: 'none',
-                        backgroundColor: 'transparent',
-                        color: emp.status === 'Active' ? '#10b981' : '#ef4444',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        outline: 'none',
-                        textAlign: 'center'
-                      }}
-                    >
-                      <option value="Active" style={{ color: '#000' }}>Active</option>
-                      <option value="Inactive" style={{ color: '#000' }}>Inactive</option>
-                    </select>
+                    {/* UPDATED: If Admin, show static text. If Staff, show the dropdown menu */}
+                    {emp.role === 'Admin' ? (
+                      <span style={{ color: '#10b981', fontWeight: 'bold' }}>Active</span>
+                    ) : (
+                      <select 
+                        value={emp.status} 
+                        onChange={(e) => handleStatusChange(emp.id, e.target.value, emp.role)}
+                        style={{
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          color: emp.status === 'Active' ? '#10b981' : '#ef4444',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          outline: 'none',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <option value="Active" style={{ color: '#000' }}>Active</option>
+                        <option value="Inactive" style={{ color: '#000' }}>Inactive</option>
+                      </select>
+                    )}
                   </td>
                   
                   <td className="center-cell">
