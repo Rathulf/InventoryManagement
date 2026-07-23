@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginForm from "./module/login/LoginForm.jsx";
 import RegisterForm from "./module/register/RegisterForm.jsx";
 import Dashboard from './module/dashboards/Dashboard';
+import ForcePasswordChange from './module/force-password-change/ForcePasswordChange.jsx';
 
 // 1. Create a security wrapper for protected pages
 const ProtectedRoute = ({ children }) => {
