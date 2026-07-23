@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 export default function ManageEmployees() {
   const [employees, setEmployees] = useState([]);
@@ -25,25 +26,36 @@ export default function ManageEmployees() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleAddEmployee = (e) => {
+  const handleAddEmployee = async (e) => {
     e.preventDefault();
     
     const payload = { ...formData, status: 'Active' };
+    const toastId = toast.loading("Adding employee...");
 
-    fetch('https://stockpulse-cbdz.onrender.com/api/employees', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to add employee");
-        return res.json();
-      })
-      .then(() => {
-        fetchEmployees();
-        setFormData({ name: '', email: '', password: '', role: 'Staff' });
-      })
-      .catch(err => console.error("Error adding employee:", err));
+    try {
+      const response = await fetch('https://stockpulse-cbdz.onrender.com/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        // Parse the exact error message sent from your Spring Boot GlobalExceptionHandler
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add employee");
+      }
+
+      await response.json();
+      
+      fetchEmployees();
+      setFormData({ name: '', email: '', password: '', role: 'Staff' });
+      toast.success("Employee added successfully!", { id: toastId });
+
+    } catch (error) {
+      console.error("Error adding employee:", error);
+      // Display the error directly to the user
+      toast.error(error.message, { id: toastId });
+    }
   };
 
   const handleStatusChange = (id, newStatus) => {
@@ -59,7 +71,6 @@ export default function ManageEmployees() {
       .catch(err => console.error("Error updating status:", err));
   };
 
-  // UPDATED: Now accepts 'role' and checks it before proceeding
   const handleDelete = (id, role) => {
     if (role === 'Admin') {
       alert("Action Denied: You cannot delete the system administrator account.");
@@ -142,7 +153,6 @@ export default function ManageEmployees() {
                   </td>
                   
                   <td className="center-cell">
-                    {/* UPDATED: Conditionally renders the button based on the role */}
                     {emp.role !== 'Admin' ? (
                       <button onClick={() => handleDelete(emp.id, emp.role)} className="ledger-row-purge-btn">
                         Delete
