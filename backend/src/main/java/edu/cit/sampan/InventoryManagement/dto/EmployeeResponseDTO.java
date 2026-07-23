@@ -6,6 +6,9 @@ public class EmployeeResponseDTO {
     private String email;
     private String role;
     private String status;
+    
+    // NEW: Added the boolean flag to track password reset requirements
+    private boolean requiresPasswordChange;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -22,4 +25,8 @@ public class EmployeeResponseDTO {
     
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    // NEW: Getter and Setter for the security flag
+    public boolean isRequiresPasswordChange() { return requiresPasswordChange; }
+    public void setRequiresPasswordChange(boolean requiresPasswordChange) { this.requiresPasswordChange = requiresPasswordChange; }
 }

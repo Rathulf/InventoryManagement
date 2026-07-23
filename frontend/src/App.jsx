@@ -40,6 +40,7 @@ export default function App() {
         {/* Fallback 404 Route */}
         <Route path="*" element={<Navigate to="/login" replace/>} />
       </Routes>
+      <Route path="/force-password-change" element={<ForcePasswordChange />} />
     </Router>
   );
 }
