@@ -57,7 +57,14 @@ export default function Login() {
   const finalizeLogin = (userData) => {
     localStorage.setItem('userRole', userData.role);
     localStorage.setItem('userName', userData.name);
-    localStorage.setItem('isLoggedIn', 'true'); // Added this line to persist session
+    localStorage.setItem('isLoggedIn', 'true'); 
+    
+    // NEW: Save the actual JWT provided by your Spring Boot server
+    // Note: Make sure your Java backend actually sends the token back inside the userData object!
+    if (userData.token) {
+      localStorage.setItem('jwt_token', userData.token); 
+    }
+
     navigate('/dashboard');
   };
 

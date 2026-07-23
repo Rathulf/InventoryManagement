@@ -3,6 +3,7 @@ package edu.cit.sampan.InventoryManagement.service;
 import edu.cit.sampan.InventoryManagement.entity.Employee;
 import edu.cit.sampan.InventoryManagement.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +19,9 @@ public class EmployeeService {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public List<Employee> getAllEmployees() {
         return repository.findAll();
     }
@@ -25,6 +29,11 @@ public class EmployeeService {
     public Employee addEmployee(Employee emp) {
         // Enforce active status
         emp.setStatus("Active");
+        
+        // NEW: Hash the password before saving to the database
+        String hashedPassword = passwordEncoder.encode(emp.getPassword());
+        emp.setPassword(hashedPassword);
+        
         Employee savedEmp = repository.save(emp);
         
         auditLogService.logAction(
@@ -61,8 +70,13 @@ public class EmployeeService {
         
         if (empOpt.isPresent()) {
             Employee emp = empOpt.get();
-            // Check if passwords match AND the account status is exactly "Active"
-            if (emp.getPassword().equals(password) && "Active".equalsIgnoreCase(emp.getStatus())) {
+            
+            // NEW: Use passwordEncoder.matches() instead of .equals()
+            // It safely checks the raw password against the stored BCrypt hash
+            boolean isPasswordMatch = passwordEncoder.matches(password, emp.getPassword());
+            boolean isActive = "Active".equalsIgnoreCase(emp.getStatus());
+            
+            if (isPasswordMatch && isActive) {
                 
                 // Automatically records the login in your system audit trail
                 auditLogService.logAction(
@@ -84,8 +98,9 @@ public class EmployeeService {
         if (employeeOpt.isPresent()) {
             Employee employee = employeeOpt.get();
             
-            // Set the new password
-            employee.setPassword(newPassword);
+            // NEW: Hash the new password before updating
+            String hashedPassword = passwordEncoder.encode(newPassword);
+            employee.setPassword(hashedPassword);
             
             // Flip the flag so they aren't forced to reset it again
             employee.setRequiresPasswordChange(false);
