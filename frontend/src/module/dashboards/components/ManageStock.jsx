@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useDashboardFilter } from '../../hooks/useDashboardFilter'; // Check this path
+import { useDashboardFilter } from '../../hooks/useDashboardFilter'; 
 
 export default function ManageStock() {
   const [inventory, setInventory] = useState([]);
@@ -13,7 +13,10 @@ export default function ManageStock() {
     threshold: 200 
   });
 
-  // Hook initialized WITHOUT threshold so it displays all items
+  // NEW: State to track which item is being edited and its temporary data
+  const [editingId, setEditingId] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
+
   const {
     searchQuery,
     setSearchQuery,
@@ -82,6 +85,42 @@ export default function ManageStock() {
       .catch(err => console.error("Error adding item:", err));
   };
 
+  // --- NEW EDITING FUNCTIONS --- //
+  
+  // Triggers edit mode and copies the current item's data into the temporary edit form
+  const handleEditClick = (item) => {
+    setEditingId(item.id);
+    setEditFormData(item);
+  };
+
+  // Cancels edit mode without saving
+  const handleCancelEdit = () => {
+    setEditingId(null);
+  };
+
+  // Handles typing inside the edit inputs
+  const handleEditChange = (e) => {
+    setEditFormData({
+      ...editFormData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  // Sends the PUT request to Spring Boot to update the record
+  const handleSaveEdit = (id) => {
+    fetch(`https://stockpulse-cbdz.onrender.com/api/items/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editFormData)
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to update item");
+        setEditingId(null); // Close edit mode
+        fetchInventory(); // Refresh the table
+      })
+      .catch(err => console.error("Error updating item:", err));
+  };
+
   const handleDelete = (id) => {
     if (!window.confirm("Are you sure you want to purge this record?")) return;
     fetch(`https://stockpulse-cbdz.onrender.com/api/items/${id}`, {
@@ -97,7 +136,6 @@ export default function ManageStock() {
   return (
     <div className="inventory-section mt-0">
       
-      {/* ADD ITEM FORM */}
       <div className="creation-form-block">
         <h3>Add New Product</h3>
         <form className="add-item-fluid-form" onSubmit={handleAddItem}>
@@ -109,7 +147,7 @@ export default function ManageStock() {
             <option value="Furniture">Furniture</option>
             <option value="Supplies">Supplies</option>
             <option value="Hardware">Hardware</option>
-            <option valie="Consumables">Consumables</option>
+            <option value="Consumables">Consumables</option>
           </select>
           
           <input type="number" name="price" placeholder="Price (₱)" value={formData.price} onChange={handleInputChange} min="0" step="0.01" required />
@@ -122,7 +160,6 @@ export default function ManageStock() {
 
       <hr className="section-divider" />
 
-      {/* --- HEADER & FILTER SECTION --- */}
       <div className="operations-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
         <div>
           <h3 style={{ margin: '0 0 0.5rem 0' }}>Manage Existing Stock</h3>
@@ -176,23 +213,89 @@ export default function ManageStock() {
               </tr>
             ) : (
               filteredData.map((item) => (
-                <tr key={item.id}>
-                  <td className="sku-cell">{item.sku}</td>
-                  <td><strong>{item.name}</strong></td>
+                // NEW: Ternary operator to switch between EDIT MODE and VIEW MODE
+                editingId === item.id ? (
                   
-                  <td className="center-cell">
-                    <span className={item.quantity <= item.threshold ? "danger-stock" : "normal-stock"}>
-                      {item.quantity}
-                    </span>
-                  </td>
+                  /* --- EDIT MODE ROW --- */
+                  <tr key={item.id} style={{ backgroundColor: '#f8fafc' }}>
+                    <td className="sku-cell">
+                      {/* Usually SKU isn't editable, but you can change this to an input if needed */}
+                      {item.sku} 
+                    </td>
+                    <td>
+                      <input 
+                        type="text" 
+                        name="name" 
+                        value={editFormData.name} 
+                        onChange={handleEditChange} 
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', width: '90%' }}
+                      />
+                    </td>
+                    <td className="center-cell">
+                      <input 
+                        type="number" 
+                        name="quantity" 
+                        value={editFormData.quantity} 
+                        onChange={handleEditChange} 
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', width: '60px', textAlign: 'center' }}
+                      />
+                    </td>
+                    <td className="center-cell">
+                      <input 
+                        type="number" 
+                        name="threshold" 
+                        value={editFormData.threshold} 
+                        onChange={handleEditChange} 
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', width: '60px', textAlign: 'center' }}
+                      />
+                    </td>
+                    <td className="center-cell" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <button 
+                        onClick={() => handleSaveEdit(item.id)} 
+                        style={{ backgroundColor: '#10b981', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                      >
+                        Save
+                      </button>
+                      <button 
+                        onClick={handleCancelEdit} 
+                        style={{ backgroundColor: '#94a3b8', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                      >
+                        Cancel
+                      </button>
+                    </td>
+                  </tr>
+
+                ) : (
                   
-                  <td className="center-cell">{item.threshold}</td>
-                  <td className="center-cell">
-                    <button onClick={() => handleDelete(item.id)} className="ledger-row-purge-btn">
-                      Delete Stock
-                    </button>
-                  </td>
-                </tr>
+                  /* --- VIEW MODE ROW --- */
+                  <tr key={item.id}>
+                    <td className="sku-cell">{item.sku}</td>
+                    <td><strong>{item.name}</strong></td>
+                    
+                    <td className="center-cell">
+                      <span className={item.quantity <= item.threshold ? "danger-stock" : "normal-stock"}>
+                        {item.quantity}
+                      </span>
+                    </td>
+                    
+                    <td className="center-cell">{item.threshold}</td>
+                    <td className="center-cell" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <button 
+                        onClick={() => handleEditClick(item)} 
+                        style={{ backgroundColor: '#38bdf8', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(item.id)} 
+                        className="ledger-row-purge-btn"
+                        style={{ margin: 0 }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                )
               ))
             )}
           </tbody>

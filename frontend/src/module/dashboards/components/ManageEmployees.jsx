@@ -46,7 +46,6 @@ export default function ManageEmployees() {
       .catch(err => console.error("Error adding employee:", err));
   };
 
-  // NEW: Handle direct status changes from the table
   const handleStatusChange = (id, newStatus) => {
     fetch(`https://stockpulse-cbdz.onrender.com/api/employees/${id}/status`, {
       method: 'PUT',
@@ -60,8 +59,15 @@ export default function ManageEmployees() {
       .catch(err => console.error("Error updating status:", err));
   };
 
-  const handleDelete = (id) => {
+  // UPDATED: Now accepts 'role' and checks it before proceeding
+  const handleDelete = (id, role) => {
+    if (role === 'Admin') {
+      alert("Action Denied: You cannot delete the system administrator account.");
+      return; 
+    }
+
     if (!window.confirm("Are you sure you want to permanently delete this employee?")) return;
+    
     fetch(`https://stockpulse-cbdz.onrender.com/api/employees/${id}`, { method: 'DELETE' })
       .then(res => {
         if (!res.ok) throw new Error("Failed to delete employee");
@@ -91,7 +97,6 @@ export default function ManageEmployees() {
 
       <h3>Employee Directory</h3>
       
-      {/* WRAPPED IN RESPONSIVE CONTAINER FOR SCROLLING */}
       <div className="table-responsive-container">
         <table className="ledger-table-view">
           <thead>
@@ -137,7 +142,14 @@ export default function ManageEmployees() {
                   </td>
                   
                   <td className="center-cell">
-                    <button onClick={() => handleDelete(emp.id)} className="ledger-row-purge-btn">Delete</button>
+                    {/* UPDATED: Conditionally renders the button based on the role */}
+                    {emp.role !== 'Admin' ? (
+                      <button onClick={() => handleDelete(emp.id, emp.role)} className="ledger-row-purge-btn">
+                        Delete
+                      </button>
+                    ) : (
+                      <span style={{ color: '#94a3b8', fontSize: '13px', fontWeight: '500' }}>Protected</span>
+                    )}
                   </td>
                 </tr>
               ))
