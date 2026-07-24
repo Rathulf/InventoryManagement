@@ -27,7 +27,7 @@ export default function App() {
         {/* Authentication Route Paths */}
         <Route path="/login" element={<LoginForm/>} />
         <Route path="/register" element={<RegisterForm/>} />
-
+        <Route path="/force-password-change" element={<ForcePasswordChange />} />
         {/* 2. Wrap the Dashboard in the ProtectedRoute */}
         <Route 
           path="/dashboard" 
@@ -41,7 +41,7 @@ export default function App() {
         {/* Fallback 404 Route */}
         <Route path="*" element={<Navigate to="/login" replace/>} />
       </Routes>
-      <Route path="/force-password-change" element={<ForcePasswordChange />} />
+      
     </Router>
   );
 }

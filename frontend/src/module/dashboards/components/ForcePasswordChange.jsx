@@ -47,6 +47,14 @@ export default function ForcePasswordChange() {
       
       // Overwrite the locked user session with the unlocked one
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Set the exact flags your App.jsx ProtectedRoute requires to grant access
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userRole', updatedUser.role);
+      localStorage.setItem('userName', updatedUser.name);
+      if (updatedUser.token) {
+        localStorage.setItem('jwt_token', updatedUser.token);
+      }
 
       toast.success("Account secured! Welcome to StockPulse Hub.", { id: toastId });
       
